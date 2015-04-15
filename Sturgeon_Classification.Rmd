@@ -10,7 +10,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache=FALSE)
+knitr::opts_chunk$set(cache=TRUE)
 library(ggplot2)
 library(plyr)
 library(grid)
@@ -154,20 +154,20 @@ setwd("/Users/eric.crandall/Desktop/tng/fluidigm/data/preprocess")
 ## generate all graph
 ## Good dateset 1
 #MakeKmerPlot(test.FILE=read.csv("1382089116_raw.csv.tbl"), n.center=3)
-#MakeKmerPlot(test.FILE=read.csv("1382089116_raw.csv.tbl"), n.center=4)
+MakeKmerPlot(test.FILE=read.csv("1382089116_raw.csv.tbl"), n.center=4)
 
 #MakeKmerPlot(test.FILE=read.csv("1382100495_raw.csv.tbl"), n.center=3)
-#MakeKmerPlot(test.FILE=read.csv("1382100495_raw.csv.tbl"), n.center=4)
+MakeKmerPlot(test.FILE=read.csv("1382100495_raw.csv.tbl"), n.center=4)
 
 # poor case
-#MakeKmerPlot(test.FILE=read.csv("1381961382_raw.csv.tbl"), n.center=3)
+MakeKmerPlot(test.FILE=read.csv("1381961382_raw.csv.tbl"), n.center=3)
 
 # Sturgeon set 1
 #MakeKmerPlot(test.FILE=read.csv("1381905043_raw.csv.tbl"), n.center=3)
-#MakeKmerPlot(test.FILE=read.csv("1381905043_raw.csv.tbl"), n.center=4)
+MakeKmerPlot(test.FILE=read.csv("1381905043_raw.csv.tbl"), n.center=4)
 
 # Sturgeon set 2
-#MakeKmerPlot(test.FILE=read.csv("1381935339_raw.csv.tbl"), n.center=4)
+MakeKmerPlot(test.FILE=read.csv("1381935339_raw.csv.tbl"), n.center=4)
 ```
      
 ### Other explorations   
@@ -179,7 +179,29 @@ To compare two permutation sets, I will be using the metric of the number of swa
 Let $U_i$ be a set of order statistics of length $l$ with permutation index $i$. Let $S(U_i, U_j)$ be the number of swapping steps in a bubble sort it takes to go from set $U_i$ to set $U_j$. If $U_i = U_j$, $S(U_i, U_j) = 0$. If $U_j$ is in reverse order of $U_i$, $S(U_i, U_j) = l(l-1)/2$.   
    
    
-```{r, eval=FALSE}   
+```{r}   
+setwd("/Users/eric.crandall/Desktop/tng/fluidigm/data/preprocess")
+test.FILE=read.csv("1382089116_raw.csv.tbl")
+clean.file <- test.FILE[grep("[X|Y]", test.FILE$Final),]
+
+clean.file <- test.FILE[test.FILE$Type=="Unknown",]
+clean.file$Name <- factor(clean.file$Name)
+clean.file$Final <-factor(clean.file$Final, levels=c("YY","XY", "XX"))
+#revalue(factor(clean.file$Final), c("XX"=2, "XY"=1, "YY"=0))
+
+# reshape the test.FILE to get the essential
+# (Assay (j), Name (i), Dye1 (y_1), Dye2 (y_2), k (k_1))
+core.data <- data.frame(
+  assay= as.numeric(clean.file$Assay),
+  name = as.numeric(clean.file$Name),
+  dye1 = clean.file$chDYE1-clean.file$bgDYE1,
+  dye2 = clean.file$chDYE2-clean.file$bgDYE2,
+  rel.dye1 = clean.file$Allele.X.1,
+  rel.dye2 = clean.file$Allele.Y.1,
+  k=as.numeric(clean.file$Final))
+
+core.data <- arrange(core.data, assay, name)
+
 require(inline)  ## for cxxfunction()                                                       
 
 ## bubble sort c code; I modify it to return the number of steps for swapping
@@ -205,7 +227,7 @@ src = 'Rcpp::NumericVector vec = Rcpp::NumericVector(vec_in);
 bubble_sort_cpp = cxxfunction(signature(vec_in = "numeric"), body=src, plugin="Rcpp")
 
 mean.rel.dye1 <- daply(core.data, "name", function (x){
-  sapply(1:(hyper$l+1), function(y) mean(x[x$k==y,]$rel.dye1))
+  sapply(1:(2+1), function(y) mean(x[x$k==y,]$rel.dye1))
   })   
 
 ReframingOrder <- function(ref, query) {
@@ -343,16 +365,18 @@ core.data <- arrange(core.data, assay, name)
 ```
 
 
-```{r, eval=F}
+```{r}
 g<-ggplot(core.data, aes(x=dye1,y=dye2, color=factor(k)))+
   geom_point()+
   facet_wrap(~assay, ncol=10)
-ggsave("abs-raw-xy-assay-sturgeonset1.pdf",g, height=20, width=30)
+g
+#ggsave("abs-raw-xy-assay-sturgeonset1.pdf",g, height=20, width=30)
 
 g<-ggplot(core.data, aes(x=rel.dye1,y=rel.dye2, color=factor(k)))+
   geom_point()+
   facet_wrap(~assay, ncol=10)
-ggsave("rel-raw-xy-assay-sturgeonset1.pdf",g, height=20, width=30)
+g
+#ggsave("rel-raw-xy-assay-sturgeonset1.pdf",g, height=20, width=30)
 ```
 
 ```{r}
@@ -526,9 +550,10 @@ g<- g+facet_wrap(Data~cut, ncol=3)+
   xlab("Sample ID")+
   ylab("Num of loci within the neigborhood (MAX: 96)")+
   guides(fill=FALSE)
-ggsave("NN-sturgeon-set.pdf",g, height=20, width=30)
+g
+#ggsave("NN-sturgeon-set.pdf",g, height=20, width=30)
 
-View(loci.matrix)
+#View(loci.matrix)
 
 intersect(core.data.1$fullname, core.data.2$fullname)
 
@@ -652,7 +677,7 @@ para$x <- daply(train.data, "name", function (x){
 *  via k-means result
 
 
-## signal distance
+## Regional inference by signal association 
 
 Data: I need to slurp the regional data from `ame_bycatch3916_gsisim.txt`, `ame_bycatch4332_gsisim.txt`, `ame_final_baseline_gsisim.txt`.   
    
@@ -667,7 +692,7 @@ awk 'BEGIN{label="North"} {if (/AM/){print $1","label} if(/SOUTH/){label="South"
 
 Let's work with the Sturgeon dataset
 
-```{r, eval=FALSE}
+```{r}
 setwd("/Users/eric.crandall/Desktop/tng/fluidigm/data/preprocess")
 test.FILE=read.csv("1381905043_raw.csv.tbl")
 test.FILE1=read.csv("1381992037_raw.csv.tbl")
@@ -772,8 +797,8 @@ Based on the combined nonadjusted relative intensity value, 54 out of 58 (93.1%)
 
 What i have discovered from this:
    
- * starting with the relative intensity value gives a better regional predictive result than the absolute intensity value
- * I compare the result with weighted mean versus unweighted mean. I found it does not make much of a difference.
+ * using a relative intensity value gives a better regional predictive result 
+ * whether mean is weight or not does not make much of a difference.
 
 # Source 
 
@@ -799,4 +824,116 @@ cat ../preprocess/${i}.exp ../preprocess/${i}.raw| awk 'BEGIN{FS=","} {if(NR==1)
 rm ../preprocess/${i}.exp ../preprocess/${i}.raw;
 done
 rm *_raw.csv.*
+```
+
+
+## Gibbs model 1
+```{r, eval=FALSE}  
+## This function runs Gibbs sampling based on the regression model
+RunMcmcModel1 <- function(para, hyper, y, n.sam, n.burn)
+{
+  ###cache the draw
+  save.sam <- NULL
+  save.sam$b0 <- lapply(1:n.sam, function(i) array(NA, dim=c(hyper$M, hyper$l+1)))
+  save.sam$b1 <- lapply(1:n.sam, function(i) array(NA, dim=c(hyper$M, hyper$l+1)))
+  save.sam$x <- lapply(1:n.sam, function(i) array(NA, dim=c(hyper$N, hyper$l+1)))
+  save.sam$sigma2 <- rep(NA, n.sam)
+  
+  ##call updating for N.sam iterations
+  for(i in 1:n.sam)
+  {
+    
+    if(i%%5==1) {
+      print(c("Complete: ", i))
+    }
+    
+    para$b0 <- UpdateB0(para, hyper, y)
+    para$b1 <- UpdateB1(para, hyper, y)
+    para$x <- UpdateX(para, hyper, y)
+    para$sigma2 <- UpdateSigma2(para, hyper, y)
+    
+    save.sam$b0[[i]] <- para$b0
+    save.sam$b1[[i]] <- para$b1
+    save.sam$x[[i]] <- para$x
+    save.sam$sigma2[i] <- para$sigma2
+  }
+  ### clean out burn-in
+  
+  save.sam$b0 <- save.sam$b0[-(1:n.burn)]
+  save.sam$b1 <- save.sam$b1[-(1:n.burn)]
+  save.sam$x <- save.sam$x[-(1:n.burn)]
+  save.sam$sigma2 <- save.sam$sigma2[-(1:n.burn)]
+  return(save.sam)
+}
+
+##Hyperparameter: hyper$M, hyper$l [=2], hyper$psi0, hyper$psi1, hyper$N, hyper$mu[k]
+
+#updating parameter B0
+UpdateB0<- function(para, hyper, y){
+  b0.val <- array(NA, dim=c(hyper$M, hyper$l+1))
+  for (j in 1:hyper$M) {
+    for (k in 1:(hyper$l+1)) {
+      iso.data <- y[y$assay==j & y$k==k,]
+      x.val <- para$x[iso.data$name,k]
+      y.val <- iso.data$dye1
+      n.i <- length(x.val)
+      
+      normal.var <- (n.i/para$sigma2 + 1/hyper$psi0)^(-1)
+      normal.mean <- normal.var * ( ( sum(y.val)-para$b1[j,k]*sum(x.val) ) / para$sigma2 + hyper$b0 / hyper$psi0)
+      b0.val[j,k] <- rnorm(1, normal.mean, sqrt(normal.var))
+    }
+  }
+  return(b0.val)
+}
+
+UpdateB1<- function(para, hyper, y){
+  b1.val <- array(NA, dim=c(hyper$M, hyper$l+1))
+  for (j in 1:hyper$M) {
+    for (k in 1:(hyper$l+1)) {
+      iso.data <- y[y$assay==j & y$k==k,]
+      x.val <- para$x[iso.data$name,k]
+      y.val <- iso.data$dye1
+      n.i <- length(x.val)
+      
+      normal.var <- (sum(x.val)/para$sigma2 + 1/hyper$psi1)^(-1)
+      normal.mean <- normal.var * ( ( sum(y.val*x.val)-para$b0[j,k]*sum(x.val) ) / para$sigma2 + hyper$b1 / hyper$psi1)
+      b1.val[j,k] <- rnorm(1, normal.mean, sqrt(normal.var))
+      #print(b1.val[j,k])
+  }
+  }
+  return(b1.val)
+}
+
+UpdateX <- function(para, hyper, y) {
+  x.val <- array(NA, dim=c(hyper$N, hyper$l+1))
+  for (i in 1:hyper$N) {
+    for (k in 1:(hyper$l+1)) {
+      iso.data <- y[y$name==i & y$k==k,]
+      
+      b1.val <- para$b0.val[iso.data$assay,k]
+      b0.val <- para$b1.val[iso.data$assay,k]
+      
+      y.val <- iso.data$dye1
+      n.i <- length(y.val)
+      
+      normal.var <- (sum(b1.val)/para$sigma2 + 1/hyper$sigma2[k])^(-1)
+      normal.mean <- normal.var * ( ( sum(y.val*b1.val)-sum(b0.val*b1.val) ) / para$sigma2 + hyper$mu[k] / hyper$sigma2[k])
+      x.val[i,k] <- rnorm(1, normal.mean, sqrt(normal.var))
+    }
+  }
+  return(x.val)
+}
+
+UpdateSigma2<- function(para, hyper, y){
+  
+  select.jk <- cbind(y$assay,y$k)
+  select.ik <- cbind(y$name,y$k)
+    
+  ig.alpha <- hyper$a + (0.5)*length(y$name)
+  ig.beta <- hyper$b + (0.5)* sum(
+    (y$dye1- (para$b0[select.jk] + para$b1[select.jk]*para$x[select.ik])^2))
+  
+  sigma2.val <- 1/rgamma(1, shape=ig.alpha, rate=ig.beta)
+  return(sigma2.val)
+}
 ```
