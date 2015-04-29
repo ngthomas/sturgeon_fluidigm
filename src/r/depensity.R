@@ -82,3 +82,111 @@ for (i in 1:(n.groups)) {
   ggsave(paste0(prefix,i,".pdf"),g, width = 34, height = 22)
 }
 }
+
+
+
+# Since the fluidigm only allow things to be labeled into three groups (four if using "invalid" label), for loci with more than three or four clusters, I reuse the same label in full rotation. I need to correct the k value to match up the actual cluster ID. For now the max k:8
+
+SpanningK <- function(orig.k ,rel.dye1, rel.dye2) 
+{
+  k <- orig.k
+  if(max(k) > 3) {
+    sort.k.ind <- order(desc(atan(rel.dye2/rel.dye1)))
+    sort.k <- orig.k[sort.k.ind]
+    
+    sort.k.gt0.ind <- sort.k.ind[which(sort.k>0)]
+    sort.k.gt0 <- orig.k[sort.k.gt0.ind]
+    
+    track.counter <- 0
+    inc.switch <- 0
+    for ( i in 2:length(sort.k.gt0)) {
+      if(sort.k.gt0[i-1] - sort.k.gt0[i] >= 2) {
+        inc.switch <- 1
+        track.counter <- sort.k.gt0[i]
+      }
+      
+      if (inc.switch == 1 && abs(sort.k.gt0[i] - track.counter) %in% c(0,1)) {
+        k[sort.k.gt0.ind[i]] <- k[sort.k.gt0.ind[i]] + 4
+        track.counter <- max(sort.k.gt0[i], track.counter)
+      }
+    }}
+  k
+}
+
+ReOrganizeFile <- function (test.FILE) {
+  clean.file <- test.FILE[test.FILE$Type=="Unknown",]
+  clean.file$Name <- factor(clean.file$Name)
+  clean.file$Final <-factor(clean.file$Final, levels=c("No Call","XX","XY", "YY", "Invalid"))
+  clean.file$Assay <- factor(clean.file$Assay, levels = unique(clean.file$Assay))
+  
+  core.data <- data.frame(
+    plate = clean.file$plate,
+    assay= as.numeric(clean.file$Assay),
+    name = as.numeric(clean.file$Name),
+    rel.dye1 = clean.file$Allele.X.1,
+    rel.dye2 = clean.file$Allele.Y.1,
+    k=as.numeric(clean.file$Final)-1,
+    full.name=clean.file$Name,
+    assay.name=clean.file$Assay
+  )
+  
+  core.data <- arrange(core.data, assay, name)
+  core.data
+}
+
+
+cal.pred.one.y <- function(data, data.rm){
+  
+  y.tbl <- as.matrix(data[,3:7])-data.rm
+  okay.loci <- data$max.k > 0
+  occupy.matrix <- okay.loci*t(sapply(1:nrow(data), function(i){
+    blank<-rep(0,5)
+    blank[1:data$max.k[i]] <- 1
+    blank
+  }))
+  
+  #hyperparam value : for now, assume uniform
+  hyper.alpha <- ifelse(data$max.k >0, 1/data$max.k, 0)
+  
+  #data$max.
+  new.alpha<- (hyper.alpha + y.tbl)*occupy.matrix
+  
+  ## This is the longer way to express predictive Polya-Eggenberg urn scheme
+  
+  #lg.new.alpha <- lgamma(new.alpha)
+  #lg.new.alpha[occupy.matrix==0]<-0
+  #p1<- rowSums(lg.new.alpha)
+  #p2 <- lgamma(rowSums(new.alpha))
+  #p2[okay.loci==0]<-0
+  #p3 <- lgamma(rowSums(new.alpha)+1)
+  #p4 <- (lgamma(new.alpha+1)+p1-lg.new.alpha)*occupy.matrix  
+  #exp((p4+(p2-p1-p3))*occupy.matrix)
+  
+  # the quicker way is this
+  prob.new <- new.alpha/rowSums(new.alpha)
+  prob.new[occupy.matrix==0]<-0
+  prob.new
+}
+
+get.regional.prob <- function(assay, new.k, region, for.region="North", take.one.out=F) {
+  
+  n.loci<- dim(prob.matrix.north)[1]
+  n.k <- dim(prob.matrix.north)[2]
+  region <- region[1]
+  
+  rm.matrix<-matrix(0, ncol=n.k, nrow=n.loci)
+  
+  if(take.one.out && for.region==region) {
+    rm.matrix[cbind(assay,new.k)] <- 1
+  }
+  
+  if(for.region=="North") {
+    prob.matrix.north <- cal.pred.one.y(north.obs, data.rm<-rm.matrix)
+    exp(sum(log(prob.matrix.north[cbind(assay, new.k)])))
+  }
+  else {
+    prob.matrix.south <- cal.pred.one.y(south.obs, data.rm<-rm.matrix)
+    exp(sum(log(prob.matrix.south[cbind(assay, new.k)])))
+  }
+}
+
