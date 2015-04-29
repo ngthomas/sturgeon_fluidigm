@@ -672,11 +672,7 @@ para$x <- daply(train.data, "name", function (x){
 ```
 
 
-
-
 *  via k-means result
-
-
 ## Regional inference by signal association 
 
 Data: I need to slurp the regional data from `ame_bycatch3916_gsisim.txt`, `ame_bycatch4332_gsisim.txt`, `ame_final_baseline_gsisim.txt`.   
