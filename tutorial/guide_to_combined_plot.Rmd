@@ -36,7 +36,7 @@ rm *.csv.*
 
 ##3. Make the combined plot in R   
 
-Pre-requsite: ggplot2, plyr, dplyr  
+Pre-requsite: `ggplot2, plyr, dplyr ` and this [R script](https://github.com/ngthomas/sturgeon_fluidigm/blob/master/src/r/depensity.R) 
 
 ```{r, eval=F}
 library(ggplot2)
