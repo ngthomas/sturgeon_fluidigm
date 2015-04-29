@@ -1,3 +1,5 @@
+# This function makes relative intensity plot from a combined CSV plate file
+
 MakeIntensityPlot <- function (combined.FILE, prefix="plate_x_y", n.groups = 4) {
   
 
