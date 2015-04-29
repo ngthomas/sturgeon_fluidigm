@@ -135,7 +135,26 @@ for (i in 1:(n.groups)) {
   ggsave(paste0("four-plates-xy_",i,".pdf"),g, width = 34, height = 22)
 }
 
+## for raw graph
 
+for (i in 1:(n.groups)) {
+  
+  min.intv <- round(n.loci/n.groups)*(i-1)
+  max.intv <- min.intv + round(n.loci/n.groups)
+  g <- ggplot(data=core.data %>% 
+                filter(as.integer(assay.name)>min.intv, as.integer(assay.name) <= max.intv) %>% 
+                droplevels(), 
+              aes(x=dye1, y=dye2, color=factor(plate))) +
+    geom_point(alpha=0.7)+
+    geom_segment(data=list.seg %>% 
+                   filter(as.integer(assay.name)>min.intv, as.integer(assay.name) <= max.intv) %>%
+                   droplevels(),
+                 aes(x=x.start, y=y.start, xend=x.end, yend=y.end, color=plate.pair), linetype=5)+
+    facet_wrap(~assay.name, ncol = 6 )+
+    theme_bw()
+  
+  ggsave(paste0("raw_four-plates-xy_",i,".pdf"),g, width = 34, height = 22)
+}
 
 
 skew.summary <- list.seg %>%
@@ -184,74 +203,21 @@ combn.recall.FILE <- rbind(cbind("plate"=1, recall.FILE.1),
                        cbind("plate"=3, recall.FILE.3),
                        cbind("plate"=4, recall.FILE.4))
 
-
-ReOrganizeFile <- function (test.FILE) {
-  clean.file <- test.FILE[test.FILE$Type=="Unknown",]
-  clean.file$Name <- factor(clean.file$Name)
-  clean.file$Final <-factor(clean.file$Final, levels=c("No Call","XX","XY", "YY", "Invalid"))
-  clean.file$Assay <- factor(clean.file$Assay, levels = unique(clean.file$Assay))
-  
-  core.data <- data.frame(
-    plate = clean.file$plate,
-    assay= as.numeric(clean.file$Assay),
-    name = as.numeric(clean.file$Name),
-    rel.dye1 = clean.file$Allele.X.1,
-    rel.dye2 = clean.file$Allele.Y.1,
-    k=as.numeric(clean.file$Final)-1,
-    full.name=clean.file$Name,
-    assay.name=clean.file$Assay
-    )
-  
-  core.data <- arrange(core.data, assay, name)
-  core.data
-}
-
-
 recall.df <- ReOrganizeFile(combn.recall.FILE)
 
-# Since the fluidigm only allow things to be labeled into three groups (four if using "invalid" label), for loci with more than three or four clusters, I reuse the same label in full rotation. I need to correct the k value to match up the actual cluster ID. For now the max k:8
-
-SpanningK <- function(orig.k ,rel.dye1, rel.dye2) 
-{
-  k <- orig.k
-    if(max(k) > 3) {
-      sort.k.ind <- order(desc(atan(rel.dye2/rel.dye1)))
-      sort.k <- orig.k[sort.k.ind]
-      
-      sort.k.gt0.ind <- sort.k.ind[which(sort.k>0)]
-      sort.k.gt0 <- orig.k[sort.k.gt0.ind]
-      
-      track.counter <- 0
-      inc.switch <- 0
-      for ( i in 2:length(sort.k.gt0)) {
-        if(sort.k.gt0[i-1] - sort.k.gt0[i] >= 2) {
-          inc.switch <- 1
-          track.counter <- sort.k.gt0[i]
-        }
-        
-        if (inc.switch == 1 && abs(sort.k.gt0[i] - track.counter) %in% c(0,1)) {
-          k[sort.k.gt0.ind[i]] <- k[sort.k.gt0.ind[i]] + 4
-          track.counter <- max(sort.k.gt0[i], track.counter)
-        }
-      }}
-    k
-}
 
 recall.k.df <- recall.df %>%
   group_by(assay) %>%
   mutate(new.k = SpanningK(k, rel.dye1, rel.dye2)) %>%
   mutate(total.k = max(new.k))
          
-
-recall.k.df %>%
-  group_by(assay) %>%
-  summarise(total.k = max(new.k)) %>%
-  View()
-
 region.FILE=read.csv("regional.tbl")
 colnames(region.FILE) <- c("full.name", "region")
 
-recall.k.region <- inner_join(recall.k.df, region.FILE)
+make_region_unk <- function(region) {ifelse(is.na(region),"unk",region)}
+
+recall.k.region <- left_join(recall.k.df, region.FILE) %>%
+  mutate(region = make_region_unk(as.character(region)))
 
 # reduce any duplicated samples into one (Pick the best one if k>0, highest sum signal)
 
@@ -260,7 +226,6 @@ reduce.data <- recall.k.region %>%
   arrange(.,desc(k>0), desc(rel.dye1+rel.dye2)) %>% 
   filter(row_number()==1)
   
-
 north.obs <- reduce.data %>%
   filter(region %in% "North") %>%
   group_by(assay.name) %>%
@@ -271,7 +236,6 @@ north.obs <- reduce.data %>%
             ct.4=sum(new.k==4),
             ct.5=sum(new.k==5),
             max.k =max(total.k) )
-
 
 south.obs <- reduce.data %>%
   filter(region %in% "South") %>%
@@ -284,68 +248,15 @@ south.obs <- reduce.data %>%
             ct.5=sum(new.k==5),
             max.k =max(total.k))
 
+ggplot(reduce.data, aes(x=rel.dye1, y=rel.dye2, color=factor(new.k>0)))+
+  geom_density2d()
 
 ```
 
 
 ```{r}
-cal.pred.one.y <- function(data, data.rm){
 
-  y.tbl <- as.matrix(data[,3:7])-data.rm
-  okay.loci <- data$max.k > 0
-  occupy.matrix <- okay.loci*t(sapply(1:nrow(data), function(i){
-    blank<-rep(0,5)
-    blank[1:data$max.k[i]] <- 1
-    blank
-  }))
-  
-  #hyperparam value : for now, assume uniform
-  hyper.alpha <- ifelse(data$max.k >0, 1/data$max.k, 0)
-  
-  #data$max.
-  new.alpha<- (hyper.alpha + y.tbl)*occupy.matrix
-  
-  ## This is the long analytical way
-  
-  #lg.new.alpha <- lgamma(new.alpha)
-  #lg.new.alpha[occupy.matrix==0]<-0
-  #p1<- rowSums(lg.new.alpha)
-  #p2 <- lgamma(rowSums(new.alpha))
-  #p2[okay.loci==0]<-0
-  #p3 <- lgamma(rowSums(new.alpha)+1)
-  #p4 <- (lgamma(new.alpha+1)+p1-lg.new.alpha)*occupy.matrix  
-  #exp((p4+(p2-p1-p3))*occupy.matrix)
-  
-  # the quicker way is this
-  prob.new <- new.alpha/rowSums(new.alpha)
-  prob.new[occupy.matrix==0]<-0
-  prob.new
-}
-
-
-get.regional.prob <- function(assay, new.k, region, for.region="North", take.one.out=F) {
-  
-  n.loci<- dim(prob.matrix.north)[1]
-  n.k <- dim(prob.matrix.north)[2]
-  region <- region[1]
-  
-  rm.matrix<-matrix(0, ncol=n.k, nrow=n.loci)
-  
-  if(take.one.out && for.region==region) {
-    rm.matrix[cbind(assay,new.k)] <- 1
-  }
-  
-  if(for.region=="North") {
-       prob.matrix.north <- cal.pred.one.y(north.obs, data.rm<-rm.matrix)
-    exp(sum(log(prob.matrix.north[cbind(assay, new.k)])))
-  }
-  else {
-    prob.matrix.south <- cal.pred.one.y(south.obs, data.rm<-rm.matrix)
-    exp(sum(log(prob.matrix.south[cbind(assay, new.k)])))
-  }
-}
-
-#Take one North data out
+#Take one North sample out and re-calculate its predictive label
 reduce.data %>%
   filter(region %in% "North",total.k > 0) %>%
   arrange(name, assay) %>%
@@ -354,7 +265,7 @@ reduce.data %>%
             prob.south =get.regional.prob(assay, new.k, region, for.region="South", take.one.out=T) ) %>%
   mutate(prob.being.north=prob.north/(prob.north+prob.south))
 
-
+#Take one South sample out and re-calculate its predictive label
 reduce.data %>%
   filter(region %in% "South",total.k > 0) %>%
   arrange(name, assay) %>%
@@ -363,8 +274,7 @@ reduce.data %>%
             prob.south =get.regional.prob(assay, new.k, region, for.region="South", take.one.out=T) ) %>%
   mutate(prob.being.north=prob.north/(prob.north+prob.south))
 
-
-
+# Calculate the predictive probabilities for BC labels
 region.unk.result <- reduce.data %>%
   filter(!(region %in% c("North","South")),total.k > 0) %>%
   arrange(name, assay) %>%
@@ -373,6 +283,7 @@ region.unk.result <- reduce.data %>%
             prob.south =get.regional.prob(assay, new.k, region, for.region="South") ) %>%
   mutate(prob=prob.north/(prob.north+prob.south))
 
+# tallying the number of uncalled loci per individual; the higher the number, the higher the chances for that individual being a poor sample
 
 reduce.data %>%
   filter(total.k > 0) %>%
@@ -420,8 +331,15 @@ ggplot(rbind(melt.table.frac.N, melt.table.frac.S), aes(x=assay.name,y=fraction,
   scale_fill_brewer(palette = "Set2", name="cluster #", labels=c(1,2,3,4,5))+
   ylab("Group fraction")+
   xlab("Locus Name - sort by Chi-seq value")
+```
 
-## make PCA plot
+
+
+
+## PCA plot
+The PCA analysis is not accurate because the data contains the uncalled "0" categories.  
+  
+```{r}
 
 df.for.pca <-reduce.data %>% filter(total.k > 0) 
 
@@ -436,7 +354,6 @@ nonzero.row <- apply(data.for.pca, 1, sum) > 0
 pca.raw <- data.for.pca[nonzero.row,]
 
 pca <- prcomp(pca.raw, scale=F)
-
 
 chisq.rval <- round(log(p.val.NS))
 pca.melted <- melt(pca$rotation[,1:9])
@@ -464,7 +381,7 @@ ggplot(scores %>% filter(regional.labels %in% c("North","South")),
 ggplot(scores %>% filter(regional.labels %in% c("North","South")), 
        aes(x=PC1, y=PC2, colour=regional.labels))+
   geom_point(size=4, alpha=0.8)+
-  scale_color_discrete("Regional Labels", breaks=c("North", "South", "BC3916", "BC4332"))+
+  scale_color_discrete("Regional Labels", breaks=c("North", "South", "BC3916", "BC4332", "unk"))+
   geom_point(data=scores %>% filter(!regional.labels %in% c("North","South")),
              aes(x=PC1, y=PC2, colour=regional.labels),
              size=2)+
@@ -488,11 +405,91 @@ ggplot(scores %>% filter(regional.labels %in% c("North","South")),
              size=2)+
   theme_bw()
 
-
 ```
 
 
+# Testing out identifiability of duplicated samples between plates
 
+```{r}
+unmelt.rpnk <- dcast(recall.k.region %>% filter(total.k>0), region+plate+name~assay, value.var="new.k")
+n.sample <- nrow(unmelt.rpnk)
+
+
+comb.set <- combn(1:4,2)
+plot.by.ident <- vector("list",ncol(comb.set))
+plot.by.region <- vector("list",ncol(comb.set))
+
+for ( set in 1:ncol(comb.set) ){
+  
+  set.1 <-  unmelt.rpnk %>% filter(plate==comb.set[1,set]) 
+  set.2 <-  unmelt.rpnk %>% filter(plate==comb.set[2,set]) 
+  
+  k.set.1 <- set.1 %>% .[,4:77]
+  k.set.2 <- set.2 %>% .[,4:77]
+  
+  name.set.1 <- set.1 %>% .[,3]
+  name.set.2 <- set.2 %>% .[,3]
+  
+  region.set.1 <- set.1 %>% .[,1]
+  region.set.2 <- set.2 %>% .[,1]
+  
+  same.k <- apply(k.set.1,1,function(x) colSums(x==t(k.set.2)))
+  same.0 <- apply(k.set.1,1,function(x) colSums(x+t(k.set.2)==0))
+  melt.sharek <- melt(same.k-same.0)
+  
+  g <- ggplot(melt.sharek, aes(x=Var1, y=value))+
+    geom_point(alpha=0.2)+
+    xlab(paste("Sample ID from plate ", comb.set[2,set],collapse=""))+
+    ylab(paste("Number of loci shared with plate ",comb.set[1,set], collapse="") )
+
+  inters.name <- intersect(name.set.1, name.set.2)
+  
+  if(length(inters.name)>0){
+    ind.inters.set1 <- which(name.set.1 %in% inters.name)
+    ind.inters.set2 <- which(name.set.2 %in% inters.name)
+  
+    val <- (same.k-same.0)[cbind(ind.inters.set2, ind.inters.set1)]
+    inters.df <- data.frame(x=ind.inters.set2, y=val)
+    
+    g <- g + 
+      geom_point(data=inters.df, aes(x=x, y=y, color="blue"))+
+      scale_color_discrete("", "identical Sample")
+  }
+  plot.by.ident[[set]]  <- g 
+  
+  
+  melt.share.k.r <- melt.sharek %>% 
+    mutate(reg.1=region.set.2[Var1], reg.2 =region.set.1[Var2])
+  
+  melt.NS <- melt.share.k.r %>% 
+    filter(reg.1 %in% c("North", "South"), reg.2 %in% c("North", "South")) %>% 
+    mutate(compare.reg = ifelse(reg.1!=reg.2,"North_South",reg.1)) 
+  
+  g.reg <- ggplot(melt.sharek, aes(x=Var1, y=value, color))+
+    geom_point(alpha=0.2)+
+    xlab(paste("Sample ID from plate ", comb.set[2,set],collapse=""))+
+    ylab(paste("Number of loci shared with plate ",comb.set[1,set], collapse="") )
+  
+  if(ncol(melt.NS)>0){
+    g.reg <- g.reg + 
+      geom_point(data=melt.NS, aes(x=Var1, y=value, color=compare.reg))
+  }
+  plot.by.region[[set]]  <- g.reg 
+    
+}
+
+multiplot(plotlist=plot.by.region, cols=3)
+
+
+#same.k.matrix <- sapply(1, function(i) {
+#  t(sapply(1:n.sample, function(j) {
+#    n.share <- sum(unmelt.k[i,]==unmelt.k[j,])
+    #n.0 <- sum((unmelt.k[i,]+unmelt.k[j,])==0)
+    #n.share - n.0
+#  }))
+#})
+
+```
 
 
 Might need to enforce a minimal signal 
@@ -521,5 +518,45 @@ reverselog_trans <- function(base = exp(1)) {
     trans_new(paste0("reverselog-", format(base)), trans, inv, 
               log_breaks(base = base), 
               domain = c(1e-100, Inf))
+}
+```
+
+
+- define multiplot
+```{r, eval=FALSE}
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  require(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
 }
 ```
