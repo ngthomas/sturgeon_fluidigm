@@ -126,7 +126,10 @@ MultiChipRelativeIntensityPlot <- function (DF,
 #### ERIC HAS WORKED THINGS OVER AND CLEANED THEM UP DOWN TO THIS POINT ####
 
 #### After manually scoring, these functions are used to name the genotype clusters at each locus ####
-# Since the fluidigm only allow things to be labeled into three groups (four if using "invalid" label), for loci with more than three or four clusters, I reuse the same label in full rotation. I need to correct the k value to match up the actual cluster ID. For now the max k:8
+# Since the fluidigm only allow things to be labeled into three groups 
+# (four if using "invalid" label), for loci with more than three or four clusters, I reuse the same
+# label in full rotation. I need to correct the k value to match up the actual cluster ID. For now
+# the max k:8
 
 SpanningK <- function(orig.k ,rel.dye1, rel.dye2) 
 {
