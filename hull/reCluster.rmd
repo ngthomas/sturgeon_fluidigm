@@ -205,27 +205,31 @@ combn.recall.FILE <- rbind(cbind("plate"=1, recall.FILE.1),
 
 recall.df <- ReOrganizeFile(combn.recall.FILE)
 
-
+# reassign K - the number of cluster due to limitations of fluidigm' scoring capability
 recall.k.df <- recall.df %>%
   group_by(assay) %>%
   mutate(new.k = SpanningK(k, rel.dye1, rel.dye2)) %>%
   mutate(total.k = max(new.k))
-         
+
+
+# introducing the regional labels
 region.FILE=read.csv("regional.tbl")
 colnames(region.FILE) <- c("full.name", "region")
-
 make_region_unk <- function(region) {ifelse(is.na(region),"unk",region)}
 
+# merging the scoring file with the regional files
 recall.k.region <- left_join(recall.k.df, region.FILE) %>%
   mutate(region = make_region_unk(as.character(region)))
 
-# reduce any duplicated samples into one (Pick the best one if k>0, highest sum signal)
-
+# Since there are duplicated samples across four plates, I need to 
+# reduce any duplicated samples and pick the one that with k>0 and the highest sum rel-xy signal
 reduce.data <- recall.k.region %>% 
   group_by(assay, name) %>% 
   arrange(.,desc(k>0), desc(rel.dye1+rel.dye2)) %>% 
   filter(row_number()==1)
-  
+
+# reformating the "reduce.data"set into known-regional training dataset (North and South)
+
 north.obs <- reduce.data %>%
   filter(region %in% "North") %>%
   group_by(assay.name) %>%
@@ -248,15 +252,16 @@ south.obs <- reduce.data %>%
             ct.5=sum(new.k==5),
             max.k =max(total.k))
 
-ggplot(reduce.data, aes(x=rel.dye1, y=rel.dye2, color=factor(new.k>0)))+
-  geom_density2d()
+#ggplot(reduce.data, aes(x=rel.dye1, y=rel.dye2, color=factor(new.k>0)))+
+#  geom_density2d()
 
 ```
 
 
 ```{r}
 
-#Take one North sample out and re-calculate its predictive label
+# Leave-one-out
+# Take one of the "North" sample out and re-calculate its predictive label for the "North" training dataset
 reduce.data %>%
   filter(region %in% "North",total.k > 0) %>%
   arrange(name, assay) %>%
@@ -265,6 +270,7 @@ reduce.data %>%
             prob.south =get.regional.prob(assay, new.k, region, for.region="South", take.one.out=T) ) %>%
   mutate(prob.being.north=prob.north/(prob.north+prob.south))
 
+# LOU
 #Take one South sample out and re-calculate its predictive label
 reduce.data %>%
   filter(region %in% "South",total.k > 0) %>%
@@ -274,17 +280,23 @@ reduce.data %>%
             prob.south =get.regional.prob(assay, new.k, region, for.region="South", take.one.out=T) ) %>%
   mutate(prob.being.north=prob.north/(prob.north+prob.south))
 
-# Calculate the predictive probabilities for BC labels
+# Calculate the predictive probabilities for by-catch label
 region.unk.result <- reduce.data %>%
   filter(!(region %in% c("North","South")),total.k > 0) %>%
   arrange(name, assay) %>%
   group_by(name) %>%
   summarise(prob.north =get.regional.prob(assay, new.k, region, for.region="North"), 
-            prob.south =get.regional.prob(assay, new.k, region, for.region="South") ) %>%
-  mutate(prob=prob.north/(prob.north+prob.south))
+            prob.south =get.regional.prob(assay, new.k, region, for.region="South"),
+            region.lab = region[1]) %>%
+  mutate(prob.being.north=prob.north/(prob.north+prob.south))
+
+ggplot(region.unk.result, aes(x=name, y=prob, color=region.lab))+
+  geom_point()
+```
+
+```{r}
 
 # tallying the number of uncalled loci per individual; the higher the number, the higher the chances for that individual being a poor sample
-
 reduce.data %>%
   filter(total.k > 0) %>%
   arrange(name) %>% group_by(name) %>% filter(new.k==0) %>%
@@ -298,12 +310,16 @@ ggplot(reduce.data %>% filter(total.k > 0, new.k >0, region %in% c("North","Sout
   geom_point()+
   theme_bw()
 
-# get chi-seq p value
+# get chi-seq p value / or K-S score in the future
 p.val.NS <- apply(cbind(north.obs, south.obs) , 1 , function(x) {
     num.k <- as.numeric(x[16])
     chisq.test(cbind(1+as.numeric(x[3:(3+num.k-1)]),
                     1+as.numeric(x[11:(11+num.k-1)])))$p.val
     })
+
+
+
+### the whole point of the below is to make the graph that inform which markers are helpful in deciding the region that individuals are most likely belonged to 
 
 NS.table <- as.data.frame(rbind(cbind(north.obs, 
                                       region="North", 
@@ -346,10 +362,11 @@ df.for.pca <-reduce.data %>% filter(total.k > 0)
 total.assay <- max(df.for.pca$assay)
 total.name <- max(df.for.pca$name)
 
+# initialization for the PCA data matrix
 data.for.pca <- matrix(0, ncol=total.assay, nrow=total.name)
 data.for.pca[cbind(df.for.pca$name, df.for.pca$assay)] <- df.for.pca$new.k
 
-# remove all rows that are zeros
+# remove all rows that are zeros; another word removing the un-clusterable loci
 nonzero.row <- apply(data.for.pca, 1, sum) > 0
 pca.raw <- data.for.pca[nonzero.row,]
 
@@ -365,45 +382,19 @@ ggplot(data=pca.label) +
   geom_bar(aes(x=Var1, y=value, fill=factor(chisq.rval)), stat="identity") +
   facet_wrap(~Var2)
 
-sample.groups <- reduce.data %>% group_by(name) %>% summarise(regional.labels=region[1]) %>% select(regional.labels)
-scores <- data.frame(sample.groups, pca$x[,1:3])
+sample.groups <- reduce.data %>% group_by(name) %>% summarise(regional.labels=region[1],
+                                                              uniq.name =name[1]) %>% .[,2:3]
+scores <- tbl_df(data.frame(sample.groups, pca$x[,1:3]))
 
 ggplot(scores %>% filter(regional.labels %in% c("North","South")), 
        aes(x=PC1, y=PC2, colour=regional.labels))+
   geom_point(size=4, alpha=0.8)+
-  scale_color_discrete("Regional Labels", breaks=c("North", "South", "BC3916", "BC4332"))+
   geom_point(data=scores %>% filter(!regional.labels %in% c("North","South")),
              aes(x=PC1, y=PC2, colour=regional.labels),
              size=2)+
-  theme_bw()
-
-
-ggplot(scores %>% filter(regional.labels %in% c("North","South")), 
-       aes(x=PC1, y=PC2, colour=regional.labels))+
-  geom_point(size=4, alpha=0.8)+
   scale_color_discrete("Regional Labels", breaks=c("North", "South", "BC3916", "BC4332", "unk"))+
-  geom_point(data=scores %>% filter(!regional.labels %in% c("North","South")),
-             aes(x=PC1, y=PC2, colour=regional.labels),
-             size=2)+
   theme_bw()
 
-ggplot(scores %>% filter(regional.labels %in% c("North","South")), 
-       aes(x=PC1, y=PC3, colour=regional.labels))+
-  geom_point(size=4, alpha=0.8)+
-  scale_color_discrete("Regional Labels", breaks=c("North", "South", "BC3916", "BC4332"))+
-  geom_point(data=scores %>% filter(!regional.labels %in% c("North","South")),
-             aes(x=PC1, y=PC2, colour=regional.labels),
-             size=2)+
-  theme_bw()
-
-ggplot(scores %>% filter(regional.labels %in% c("North","South")), 
-       aes(x=PC2, y=PC3, colour=regional.labels))+
-  geom_point(size=4, alpha=0.8)+
-  scale_color_discrete("Regional Labels", breaks=c("North", "South", "BC3916", "BC4332"))+
-  geom_point(data=scores %>% filter(!regional.labels %in% c("North","South")),
-             aes(x=PC1, y=PC2, colour=regional.labels),
-             size=2)+
-  theme_bw()
 
 ```
 
@@ -415,7 +406,7 @@ unmelt.rpnk <- dcast(recall.k.region %>% filter(total.k>0), region+plate+name~as
 n.sample <- nrow(unmelt.rpnk)
 
 
-comb.set <- combn(1:4,2)
+comb.set <- cbind(comb.set,rbind(1:4,1:4))
 plot.by.ident <- vector("list",ncol(comb.set))
 plot.by.region <- vector("list",ncol(comb.set))
 
@@ -463,7 +454,7 @@ for ( set in 1:ncol(comb.set) ){
   
   melt.NS <- melt.share.k.r %>% 
     filter(reg.1 %in% c("North", "South"), reg.2 %in% c("North", "South")) %>% 
-    mutate(compare.reg = ifelse(reg.1!=reg.2,"North_South",reg.1)) 
+    mutate(compare.reg = paste(reg.1,reg.2,sep="-") )#ifelse(reg.1!=reg.2, paste(reg.1,reg.2,sep="-"),reg.1)) 
   
   g.reg <- ggplot(melt.sharek, aes(x=Var1, y=value, color))+
     geom_point(alpha=0.2)+
@@ -478,7 +469,16 @@ for ( set in 1:ncol(comb.set) ){
     
 }
 
-multiplot(plotlist=plot.by.region, cols=3)
+pdf("num-of-shared-k-per-locus-by-region.pdf", height=20, width=30)
+multiplot(plotlist=plot.by.region, cols=4)
+dev.off()
+
+pdf("num-of-shared-k-per-locus-by-id.pdf", height=20, width=30)
+multiplot(plotlist=plot.by.ident, cols=4)
+dev.off()
+
+g <- multiplot(plotlist=plot.by.ident, cols=3)
+ggsave("num-of-shared-k-per-locus-by-id.pdf",g, height=20, width=30)
 
 
 #same.k.matrix <- sapply(1, function(i) {
