@@ -262,22 +262,24 @@ south.obs <- reduce.data %>%
 
 # Leave-one-out
 # Take one of the "North" sample out and re-calculate its predictive label for the "North" training dataset
-reduce.data %>%
+n.region.lou <- reduce.data %>%
   filter(region %in% "North",total.k > 0) %>%
   arrange(name, assay) %>%
   group_by(name) %>%
   summarise(prob.north =get.regional.prob(assay, new.k, region, for.region="North", take.one.out=T), 
-            prob.south =get.regional.prob(assay, new.k, region, for.region="South", take.one.out=T) ) %>%
+            prob.south =get.regional.prob(assay, new.k, region, for.region="South", take.one.out=T),
+            region.lab = region[1]) %>%
   mutate(prob.being.north=prob.north/(prob.north+prob.south))
 
 # LOU
 #Take one South sample out and re-calculate its predictive label
-reduce.data %>%
+s.region.lou <- reduce.data %>%
   filter(region %in% "South",total.k > 0) %>%
   arrange(name, assay) %>%
   group_by(name) %>%
   summarise(prob.north =get.regional.prob(assay, new.k, region, for.region="North", take.one.out=T), 
-            prob.south =get.regional.prob(assay, new.k, region, for.region="South", take.one.out=T) ) %>%
+            prob.south =get.regional.prob(assay, new.k, region, for.region="South", take.one.out=T),
+            region.lab = region[1]) %>%
   mutate(prob.being.north=prob.north/(prob.north+prob.south))
 
 # Calculate the predictive probabilities for by-catch label
@@ -290,8 +292,31 @@ region.unk.result <- reduce.data %>%
             region.lab = region[1]) %>%
   mutate(prob.being.north=prob.north/(prob.north+prob.south))
 
-ggplot(region.unk.result, aes(x=name, y=prob, color=region.lab))+
-  geom_point()
+s.region.lou$region.lab <- factor(s.region.lou$region.lab,
+                                  levels=sort(c(" ",unique(s.region.lou$region.lab))))
+
+p<- ggplot()+
+  geom_point(data=n.region.lou, aes(x=as.numeric(as.factor(name)), y=prob.being.north, color=region.lab))+
+  geom_point(data=s.region.lou, aes(x=as.numeric(as.factor(name)), y=prob.being.north, color=region.lab))+
+  geom_point(data=region.unk.result, aes(x=as.numeric(as.factor(name)), y=prob.being.north, color=region.lab))+
+  xlab("Individual Sample")+
+  ylab("Probability in belonging to North DPS")+
+  theme_bw()+
+  facet_wrap(~region.lab,drop=F, scale="free_x",ncol=3)
+
+
+g<-ggplotGrob(p)
+## remove empty panels
+g$grobs[names(g$grobs) %in% c("panel2", "strip_t2")] = NULL
+## remove them from the layout
+g$layout = g$layout[!(g$layout$name %in% c("panel-2","strip_t-2")),]
+## move axis closer to panel
+#g$layout[g$layout$name == "axis_l-2", c("l", "r")] = c(3,3)
+grid.newpage()
+grid.draw(g)
+
+ggsave2 <- ggplot2::ggsave; body(ggsave2) <- body(ggplot2::ggsave)[-2]
+ggsave2("DPS-prediction.pdf", height=20, width=30)
 ```
 
 ```{r}
@@ -317,6 +342,11 @@ p.val.NS <- apply(cbind(north.obs, south.obs) , 1 , function(x) {
                     1+as.numeric(x[11:(11+num.k-1)])))$p.val
     })
 
+p.val.KS <- apply(cbind(north.obs, south.obs) , 1 , function(x) {
+    num.k <- as.numeric(x[16])
+    ks.test(rep(1:num.k, as.numeric(x[3:(3+num.k-1)])),
+                    rep(1:num.k, as.numeric(x[11:(11+num.k-1)])))$p.val
+    })
 
 
 ### the whole point of the below is to make the graph that inform which markers are helpful in deciding the region that individuals are most likely belonged to 
@@ -340,13 +370,15 @@ melt.table.frac.S <- melt.table %>%
   filter(region=="South") %>% 
   mutate(fraction=value/39)
 
-ggplot(rbind(melt.table.frac.N, melt.table.frac.S), aes(x=assay.name,y=fraction, fill=variable))+
+grp.frac.plot <- ggplot(rbind(melt.table.frac.N, melt.table.frac.S), aes(x=assay.name,y=fraction, fill=variable))+
   facet_wrap(~region)+
   geom_bar(stat = "identity",position = "stack")+
   coord_flip()+
   scale_fill_brewer(palette = "Set2", name="cluster #", labels=c(1,2,3,4,5))+
   ylab("Group fraction")+
   xlab("Locus Name - sort by Chi-seq value")
+
+ggsave("DPS-discriminant-loci.pdf",grp.frac.plot, height=20, width=30)
 ```
 
 
@@ -395,7 +427,7 @@ ggplot(scores %>% filter(regional.labels %in% c("North","South")),
   scale_color_discrete("Regional Labels", breaks=c("North", "South", "BC3916", "BC4332", "unk"))+
   theme_bw()
 
-
+ggsave("PCA1_2_defined_k.pdf", height=20, width=30)
 ```
 
 
