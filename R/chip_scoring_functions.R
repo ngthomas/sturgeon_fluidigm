@@ -7,22 +7,20 @@ require(ggplot2)
 #' Organize the combined data.  Put on appropriate factor levels, etc
 #' @param x  the combined_file (like that created in Step 1 of 01-develop-chip-scoring.R)
 #' 
-#' I am not quite sure why thomas has coerced the factors to ints
+#' 
 ReOrganizeFile <- function (x) {
-  y <- x[x$Type=="Unknown",]
+  y <- x[x$Type=="Unknown",] 
   y$Name <- factor(y$Name)
-  y$Final <-factor(y$Final, levels=c("YY","XY", "XX"))
+  y$Final <-factor(y$Final, levels=c("No Call","XX","XY", "YY", "Invalid"))
   y$Assay <- factor(y$Assay, levels = unique(y$Assay))
   
   ret <- data.frame(
     plate = y$plate,
-    assay= as.numeric(y$Assay),
-    name = as.numeric(y$Name),
-    rel.dye1 = y$rel.dye1,
-    rel.dye2 = y$rel.dye2,
-    k=as.numeric(y$Final),
-    full.name=y$Name,
-    assay.name=y$Assay
+    name=y$Name,
+    assay=y$Assay,
+    rel.dye1 = y$Allele.X.1,
+    rel.dye2 = y$Allele.Y.1,
+    k=as.numeric(y$Final)-1
   )
   
   ret <- arrange(ret, assay, name)
@@ -72,16 +70,15 @@ MultiChipRelativeIntensityPlot <- function (DF,
     num.rep <- dim(x)[1]
     all.combn <- combn(1:num.rep, 2)  
     seg.pt <- t(apply(all.combn, 2, function(i) {
-      c(x$rel.dye1[i[1]], 
+      c(as.numeric(x$rel.dye1[i[1]]), 
         x$rel.dye2[i[1]],
         x$rel.dye1[i[2]],
         x$rel.dye2[i[2]],
         paste(sort(c(x$plate[i[1]], 
-                     x$plate[i[2]])), collapse="_"),
-        as.character(x$assay.name[1])
+                     x$plate[i[2]])), collapse="_")
       )}))
     
-    colnames(seg.pt)<- c("x.start", "y.start", "x.end", "y.end", "plate.pair", "assay.name")
+    colnames(seg.pt)<- c("x.start", "y.start", "x.end", "y.end", "plate.pair")
     seg.pt
   })
   
@@ -92,30 +89,29 @@ MultiChipRelativeIntensityPlot <- function (DF,
   list.seg$y.start <- as.numeric(as.character(list.seg$y.start))
   list.seg$x.end <- as.numeric(as.character(list.seg$x.end))
   list.seg$y.end <- as.numeric(as.character(list.seg$y.end))
-  list.seg$assay.name <- factor(list.seg$assay.name,levels(core.pdata$assay.name))
   
   
   
   # Do the ggplotting, breaking over n.pages pages
-  n.loci <- length(unique(core.pdata$assay.name))
+  n.loci <- length(unique(core.pdata$assay))
   for (i in 1:(n.pages)) {
     
     min.intv <- round(n.loci/n.pages)*(i-1)
     max.intv <- min.intv + round(n.loci/n.pages)
     g <- ggplot(data=core.pdata %>% 
-                  filter(as.integer(assay.name)>min.intv, as.integer(assay.name) <= max.intv) %>% 
+                  filter(as.integer(assay)>min.intv, as.integer(assay) <= max.intv) %>% 
                   droplevels(), 
                 aes(x=rel.dye1, y=rel.dye2, color=factor(plate))) +
       geom_point(alpha=0.7)
     
     seg.data <- list.seg %>% 
-      filter(as.integer(assay.name)>min.intv, as.integer(assay.name) <= max.intv) %>%
+      filter(as.integer(assay)>min.intv, as.integer(assay) <= max.intv) %>%
       droplevels()
     if(nrow(seg.data)>0){
       g<- g + geom_segment(data=seg.data,
                            aes(x=x.start, y=y.start, xend=x.end, yend=y.end, color=plate.pair), linetype=5)
     }
-    g<- g + facet_wrap(~assay.name, ncol = num.columns )+
+    g<- g + facet_wrap(~assay, ncol = num.columns )+
       theme_bw()
     
     ggsave(paste0(prefix,i,".pdf"),g, width = 34, height = 22)
@@ -131,9 +127,17 @@ MultiChipRelativeIntensityPlot <- function (DF,
 # label in full rotation. I need to correct the k value to match up the actual cluster ID. For now
 # the max k:8
 
+#### CORRECTING the K - CLUSTER VALUE ####
+#' The fluidigm software calls a maximum number of three clusters. This function
+#' increases the ceiling of k if there are more than three hand-label clusters 
+#' @param orig.k the k or cluster number that the software assigned
+#' @param rel.dye1 the relative intensity level of the first dye  
+#' @param rel.dye2 the relative intensity level of the second dye
+
 SpanningK <- function(orig.k ,rel.dye1, rel.dye2) 
 {
   k <- orig.k
+  
   if(max(k) > 3) {
     sort.k.ind <- order(desc(atan(rel.dye2/rel.dye1)))
     sort.k <- orig.k[sort.k.ind]
@@ -157,29 +161,14 @@ SpanningK <- function(orig.k ,rel.dye1, rel.dye2)
   k
 }
 
-ReOrganizeFile2 <- function (test.FILE) {
-  clean.file <- test.FILE[test.FILE$Type=="Unknown",]
-  clean.file$Name <- factor(clean.file$Name)
-  clean.file$Final <-factor(clean.file$Final, levels=c("No Call","XX","XY", "YY", "Invalid"))
-  clean.file$Assay <- factor(clean.file$Assay, levels = unique(clean.file$Assay))
-  
-  core.data <- data.frame(
-    plate = clean.file$plate,
-    assay= as.numeric(clean.file$Assay),
-    name = as.numeric(clean.file$Name),
-    rel.dye1 = clean.file$Allele.X.1,
-    rel.dye2 = clean.file$Allele.Y.1,
-    k=as.numeric(clean.file$Final)-1,
-    full.name=clean.file$Name,
-    assay.name=clean.file$Assay
-  )
-  
-  core.data <- arrange(core.data, assay, name)
-  core.data
-}
+#### Calculating Predictive Poster of the Leave-one-out sample ####
+#' This function removes one of the dataset.
+#' @param orig.k the k or cluster number that the software assigned
+#' @param data
+#' @param data.rm 
 
 
-cal.pred.one.y <- function(data, data.rm){
+Cal.Pred.LOU <- function(data, data.rm){
   
   y.tbl <- as.matrix(data[,3:7])-data.rm
   okay.loci <- data$max.k > 0
@@ -189,14 +178,12 @@ cal.pred.one.y <- function(data, data.rm){
     blank
   }))
   
-  #hyperparam value : for now, assume uniform
+  #hyperparam value : for now, assume uniform prior
   hyper.alpha <- ifelse(data$max.k >0, 1/data$max.k, 0)
   
-  #data$max.
   new.alpha<- (hyper.alpha + y.tbl)*occupy.matrix
   
-  ## This is the longer way to express predictive Polya-Eggenberg urn scheme
-  
+  ## Below is the longer way to express the predictive fn of Polya-Eggenberg urn scheme
   #lg.new.alpha <- lgamma(new.alpha)
   #lg.new.alpha[occupy.matrix==0]<-0
   #p1<- rowSums(lg.new.alpha)
