@@ -9,7 +9,7 @@ All the data and scripts to reproduce our analyses are included herein.
 ```sh
 git clone https://github.com/ngthomas/sturgeon_fluidigm
 ```
-Then you should ensure that you have all the R libraries that we use:  (LIST)
+Then you should ensure that you have R (version > 3.2) and all the R libraries that we use:  (LIST)
 
 2. Run a series of R scripts.  We have all the necessary scripts set up to run in 
 order in the directory `./R-main/`.  Each of them should be run with the current
