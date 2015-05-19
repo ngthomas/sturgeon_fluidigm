@@ -2,6 +2,7 @@ library(plyr)
 library(dplyr)
 library(ggplot2)
 
+#setwd("/Users/eric.crandall/Desktop/tng/fluidigm/data/git/sturgeon_fluidigm/")
 source("R/chip_scoring_functions.R")
 
 
@@ -15,8 +16,8 @@ four_plates <- lapply(chips, function(chip) {
   gN <<- gN + 1  # increment chip counter
   
   read.csv(path, skip = 15, stringsAsFactors = FALSE) %>% # read it in 
-    cbind(plate = gN, long_plate_name = chip, .)  %>% # add the plate number and name columns
-    rename(rel.dye1 = Allele.X.1, rel.dye2 = Allele.Y.1)  # correctly name the relative dye intensity columns
+    cbind(plate = gN, long_plate_name = chip, .)  #%>% # add the plate number and name columns
+    #dplyr::rename(., rel.dye1 = Allele.X.1, rel.dye2 = Allele.Y.1)  # correctly name the relative dye intensity columns
 }) %>%
   do.call(what = rbind, args = .)  # in the end, rbind them all together.
 
