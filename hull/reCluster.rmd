@@ -13,7 +13,7 @@ library(grid)
 library(gridExtra)
 library(dplyr)
 library(reshape2)
-library(MASS)
+#library(MASS)
 setwd("/Users/eric.crandall/Desktop/tng/fluidigm/data/preprocess")
 ```
 
