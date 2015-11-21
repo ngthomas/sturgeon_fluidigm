@@ -2,29 +2,7 @@
 
 MakeIntensityPlot <- function (combined.FILE, prefix="plate_x_y", n.pages = 4, self.exclude=FALSE) {
   
-
-ReOrganizeFile <- function (test.FILE) {
-  clean.file <- test.FILE[test.FILE$Type=="Unknown",]
-  clean.file$Name <- factor(clean.file$Name)
-  clean.file$Final <-factor(clean.file$Final, levels=c("YY","XY", "XX"))
-  clean.file$Assay <- factor(clean.file$Assay, levels = unique(clean.file$Assay))
-  
-  core.data <- data.frame(
-    plate = clean.file$plate,
-    assay= as.numeric(clean.file$Assay),
-    name = as.numeric(clean.file$Name),
-    rel.dye1 = clean.file$Allele.X.1,
-    rel.dye2 = clean.file$Allele.Y.1,
-    k=as.numeric(clean.file$Final),
-    full.name=clean.file$Name,
-    assay.name=clean.file$Assay
-  )
-  
-  core.data <- arrange(core.data, assay, name)
-  core.data
-}
-
-core.data <- ReOrganizeFile(combined.FILE)
+core.data <- ReOrganizeFile_DP(combined.FILE)
 
 core.pdata<-tbl_df(core.data)
 
@@ -148,12 +126,12 @@ ReOrganizeFile_DP <- function (test.FILE) {
   test.FILE %>%
     filter(Type=="Unknown") %>% ## remove NTC 
     mutate(
-      Name = factor(Name),
+      Name = Name,
       Final = factor(Final, levels=c("No Call","XX","XY", "YY", "Invalid")),
       Assay = factor(Assay, levels = unique(Assay)),
       plate = as.integer(plate),
       assay = as.numeric(Assay),
-      name = as.numeric(Name),
+      name = as.numeric(factor(Name)),
       k = as.numeric(Final) - 1
     ) %>%
     rename(
