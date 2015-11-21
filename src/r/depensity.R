@@ -1,6 +1,6 @@
 # This function makes relative intensity plot from a combined CSV plate file
 
-MakeIntensityPlot <- function (combined.FILE, prefix="plate_x_y", n.groups = 4) {
+MakeIntensityPlot <- function (combined.FILE, prefix="plate_x_y", n.pages = 4, self.exclude=FALSE) {
   
 
 ReOrganizeFile <- function (test.FILE) {
@@ -43,14 +43,19 @@ list.seg<-ddply(repeat.data, .(assay, name), function(x) {
       x$rel.dye2[i[1]],
       x$rel.dye1[i[2]],
       x$rel.dye2[i[2]],
+      x$plate[i[1]],
+      x$plate[i[2]],
       paste(sort(c(x$plate[i[1]], 
                    x$plate[i[2]])), collapse="_"),
       as.character(x$assay.name[1])
     )}))
   
-  colnames(seg.pt)<- c("x.start", "y.start", "x.end", "y.end", "plate.pair", "assay.name")
+  colnames(seg.pt)<- c("x.start", "y.start", "x.end", "y.end", "plate.1","plate.2","plate.pair", "assay.name")
   seg.pt
 })
+
+if (self.exclude) list.seg <- list.seg %>% filter(as.integer(plate.1)!=as.integer(plate.2))
+
 
 list.seg$x.start <- as.numeric(as.character(list.seg$x.start))
 list.seg$y.start <- as.numeric(as.character(list.seg$y.start))
@@ -59,10 +64,10 @@ list.seg$y.end <- as.numeric(as.character(list.seg$y.end))
 list.seg$assay.name <- factor(list.seg$assay.name,levels(core.data$assay.name))
 
 n.loci <- length(unique(core.data$assay.name))
-for (i in 1:(n.groups)) {
+for (i in 1:(n.pages)) {
   
-  min.intv <- round(n.loci/n.groups)*(i-1)
-  max.intv <- min.intv + round(n.loci/n.groups)
+  min.intv <- round(n.loci/n.pages)*(i-1)
+  max.intv <- min.intv + round(n.loci/n.pages)
   g <- ggplot(data=core.data %>% 
                 filter(as.integer(assay.name)>min.intv, as.integer(assay.name) <= max.intv) %>% 
                 droplevels(), 
@@ -85,7 +90,10 @@ for (i in 1:(n.groups)) {
 
 
 
-# Since the fluidigm only allow things to be labeled into three groups (four if using "invalid" label), for loci with more than three or four clusters, I reuse the same label in full rotation. I need to correct the k value to match up the actual cluster ID. For now the max k:8
+# Since the fluidigm software allows users to labeled points into three groups (four if we also use the "invalid" label), 
+# So for any loci contains more than three clusters, I reuse some of the labels in rotations. 
+# This function corrects the current k (max: 3) value to the actual cluster value. 
+# For now, the largest number of clusters this able to correct up to is 8.
 
 SpanningK <- function(orig.k ,rel.dye1, rel.dye2) 
 {
@@ -114,7 +122,7 @@ SpanningK <- function(orig.k ,rel.dye1, rel.dye2)
 }
 
 ReOrganizeFile <- function (test.FILE) {
-  clean.file <- test.FILE[test.FILE$Type=="Unknown",]
+  clean.file <- test.FILE[test.FILE$Type=="Unknown",] ## remove NTC 
   clean.file$Name <- factor(clean.file$Name)
   clean.file$Final <-factor(clean.file$Final, levels=c("No Call","XX","XY", "YY", "Invalid"))
   clean.file$Assay <- factor(clean.file$Assay, levels = unique(clean.file$Assay))
@@ -127,12 +135,38 @@ ReOrganizeFile <- function (test.FILE) {
     rel.dye2 = clean.file$Allele.Y.1,
     k=as.numeric(clean.file$Final)-1,
     full.name=clean.file$Name,
-    assay.name=clean.file$Assay
+    assay.name=clean.file$Assay,
+    plate.name=clean.file$long_plate_name
   )
   
   core.data <- arrange(core.data, assay, name)
-  core.data
+  core.data %>% tbl_df
 }
+
+
+ReOrganizeFile_DP <- function (test.FILE) {
+  test.FILE %>%
+    filter(Type=="Unknown") %>% ## remove NTC 
+    mutate(
+      Name = factor(Name),
+      Final = factor(Final, levels=c("No Call","XX","XY", "YY", "Invalid")),
+      Assay = factor(Assay, levels = unique(Assay)),
+      plate = as.integer(plate),
+      assay = as.numeric(Assay),
+      name = as.numeric(Name),
+      k = as.numeric(Final) - 1
+    ) %>%
+    rename(
+      rel.dye1 = Allele.X.1,
+      rel.dye2 = Allele.Y.1,
+      full.name = Name,
+      assay.name = Assay,
+      plate.name = long_plate_name
+    ) %>%
+    arrange(assay, name) %>%
+    select(plate, assay, name, rel.dye1, rel.dye2, k, full.name, assay.name, plate.name)
+}
+
 
 
 cal.pred.one.y <- function(data, data.rm){
@@ -168,10 +202,10 @@ cal.pred.one.y <- function(data, data.rm){
   prob.new
 }
 
-get.regional.prob <- function(assay, new.k, region, for.region="North", take.one.out=F) {
+get.regional.prob <- function(assay, new.k, region, for.region="North", take.one.out=F, n.loci=96, n.k=5) {
   
-  n.loci<- dim(prob.matrix.north)[1]
-  n.k <- dim(prob.matrix.north)[2]
+  #n.loci<- dim(prob.matrix.north)[1]
+  #n.k <- dim(prob.matrix.north)[2]
   region <- region[1]
   
   rm.matrix<-matrix(0, ncol=n.k, nrow=n.loci)
