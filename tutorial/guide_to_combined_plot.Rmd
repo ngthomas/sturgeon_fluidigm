@@ -70,31 +70,9 @@ That's it!
 
 ```{r, eval=FALSE}
 
-MakeIntensityPlot <- function (combined.FILE, prefix="plate_x_y", n.groups = 4) {
+MakeIntensityPlot <- function (combined.FILE, prefix="plate_x_y", n.pages = 4, self.exclude=FALSE) {
   
-
-ReOrganizeFile <- function (test.FILE) {
-  clean.file <- test.FILE[test.FILE$Type=="Unknown",]
-  clean.file$Name <- factor(clean.file$Name)
-  clean.file$Final <-factor(clean.file$Final, levels=c("YY","XY", "XX"))
-  clean.file$Assay <- factor(clean.file$Assay, levels = unique(clean.file$Assay))
-  
-  core.data <- data.frame(
-    plate = clean.file$plate,
-    assay= as.numeric(clean.file$Assay),
-    name = as.numeric(clean.file$Name),
-    rel.dye1 = clean.file$Allele.X.1,
-    rel.dye2 = clean.file$Allele.Y.1,
-    k=as.numeric(clean.file$Final),
-    full.name=clean.file$Name,
-    assay.name=clean.file$Assay
-  )
-  
-  core.data <- arrange(core.data, assay, name)
-  core.data
-}
-
-core.data <- ReOrganizeFile(combined.FILE)
+core.data <- ReOrganizeFile_DP(combined.FILE)
 
 core.pdata<-tbl_df(core.data)
 
@@ -113,14 +91,19 @@ list.seg<-ddply(repeat.data, .(assay, name), function(x) {
       x$rel.dye2[i[1]],
       x$rel.dye1[i[2]],
       x$rel.dye2[i[2]],
+      x$plate[i[1]],
+      x$plate[i[2]],
       paste(sort(c(x$plate[i[1]], 
                    x$plate[i[2]])), collapse="_"),
       as.character(x$assay.name[1])
     )}))
   
-  colnames(seg.pt)<- c("x.start", "y.start", "x.end", "y.end", "plate.pair", "assay.name")
+  colnames(seg.pt)<- c("x.start", "y.start", "x.end", "y.end", "plate.1","plate.2","plate.pair", "assay.name")
   seg.pt
 })
+
+if (self.exclude) list.seg <- list.seg %>% filter(as.integer(plate.1)!=as.integer(plate.2))
+
 
 list.seg$x.start <- as.numeric(as.character(list.seg$x.start))
 list.seg$y.start <- as.numeric(as.character(list.seg$y.start))
@@ -129,10 +112,10 @@ list.seg$y.end <- as.numeric(as.character(list.seg$y.end))
 list.seg$assay.name <- factor(list.seg$assay.name,levels(core.data$assay.name))
 
 n.loci <- length(unique(core.data$assay.name))
-for (i in 1:(n.groups)) {
+for (i in 1:(n.pages)) {
   
-  min.intv <- round(n.loci/n.groups)*(i-1)
-  max.intv <- min.intv + round(n.loci/n.groups)
+  min.intv <- round(n.loci/n.pages)*(i-1)
+  max.intv <- min.intv + round(n.loci/n.pages)
   g <- ggplot(data=core.data %>% 
                 filter(as.integer(assay.name)>min.intv, as.integer(assay.name) <= max.intv) %>% 
                 droplevels(), 
@@ -151,6 +134,29 @@ for (i in 1:(n.groups)) {
   
   ggsave(paste0(prefix,i,".pdf"),g, width = 34, height = 22)
 }
+}
+
+ReOrganizeFile_DP <- function (test.FILE) {
+  test.FILE %>%
+    filter(Type=="Unknown") %>% ## remove NTC 
+    mutate(
+      Name = Name,
+      Final = factor(Final, levels=c("No Call","XX","XY", "YY", "Invalid")),
+      Assay = factor(Assay, levels = unique(Assay)),
+      plate = as.integer(plate),
+      assay = as.numeric(Assay),
+      name = as.numeric(factor(Name)),
+      k = as.numeric(Final) - 1
+    ) %>%
+    rename(
+      rel.dye1 = Allele.X.1,
+      rel.dye2 = Allele.Y.1,
+      full.name = Name,
+      assay.name = Assay,
+      plate.name = long_plate_name
+    ) %>%
+    arrange(assay, name) %>%
+    select(plate, assay, name, rel.dye1, rel.dye2, k, full.name, assay.name, plate.name)
 }
 ```
 
