@@ -1,0 +1,303 @@
+---
+title: "Sturgeon plate 5 - 1382136064"
+author: "Thomas Ng"
+date: "November 16, 2015"
+output:
+  html_document:
+    toc: yes
+---
+
+## Objective
+The goal of this report is to assign accurate population labels to the by-catch samples of this 5th Green Sturgeon Fluidigm run. Some samples of this run are repeated and picked from previous plates. The population assignment model is built from samples of know regions of current and previous plates.
+
+
+## Cross Plate Intensity Visualization
+I exported the fluidigm file as a csv raw Intensity file in the virtual Box and compare this run with all previous runs for quality-control purposes.
+
+```{r, engine = 'bash', eval = FALSE}
+cd /Users/tng/Desktop/tng/sturgeon_fluidigm/data/assess_5thChip_rr
+mkdir raw
+cd raw
+
+# list all of the raw csv files in here and transfer to this new folder
+for i in 1381905043_raw.csv 1381935339_raw.csv 1381992037_raw.csv 1381992302_raw.csv; do cp /Users/tng/Desktop/tng/fluidigm/data/raw/$i $i; done
+
+# transfer 1382136064_raw.csv to here
+
+# This perl script takes the native fluidigm's csv files and strips those strangely formatted csv files down to the essential
+
+for i in 1381905043_raw.csv 1381935339_raw.csv 1381992037_raw.csv 1381992302_raw.csv 1382136064_raw.csv; do
+perl -e 'chomp;
+${file_prefix}=$ARGV[0]; 
+open FILE, ${file_prefix}; 
+open O, ">".${file_prefix}.".".++$n; 
+while(<FILE>){
+if(/^\s*$/) { close O; open O, ">".${file_prefix}.".".++$n; }
+else { print O $_;}
+}' $i;
+awk 'NR>2' ${i}.3 |perl -p -e 's/\r//g' > ${i}.exp;
+paste -d "," ${i}.5 ${i}.6 ${i}.7 ${i}.8 ${i}.9 ${i}.10 |awk 'BEGIN{FS=","}{ if(NR>2){print $1","$2","$5","$8","$11","$14","$17}}' > ${i}.raw;
+cat ${i}.exp ${i}.raw| awk 'BEGIN{FS=","} {if(NR==1){print $0 ",chDOX, chDYE1, chDYE2, bgDOX, bgDYE1, bgDYE2"} else{e[$1]++; if(e[$1]==2){print d[$1]","$2","$3","$4","$5","$6","$7} d[$1]=$0;  }}' > ${i}_tbl;
+rm ${i}.exp ${i}.raw;
+done
+
+
+rm *_raw.csv.*
+```
+
+```{r,eval=FALSE}
+library(ggplot2)
+library(plyr)
+library(dplyr)
+source("/Users/tng/Desktop/tng/sturgeon_fluidigm/src/r/depensity.R")
+
+
+# set path
+setwd("/Users/tng/Desktop/tng/sturgeon_fluidigm/data/assess_5thChip_rr/raw")
+
+#### Step 1: Read in the data for the four "training" plates ####
+# chip names
+chip <- c("1381905043",  "1381935339", "1381992037", "1381992302", "1382136064")
+
+sturgeon.file <- lapply(chip, function(x) {
+  read.csv(paste(x, "_raw.csv_tbl", sep =""), stringsAsFactors = FALSE) %>%
+    tbl_df %>%
+    mutate(long_plate_name = x)
+  }) %>%
+  bind_rows(.id = "plate")
+  
+
+MakeIntensityPlot(sturgeon.file %>% mutate(plate = 1*(plate<5)+2*(plate>=5)), 
+                  prefix="replate", 
+                  n.pages=4, 
+                  self.exclude = T)
+
+```
+
+## Analysis
+
+After manually annotated some of sample's intensity points with associated cluster labels, I want to address/discuss: 
+
+1. consistency between current cluster labels for the repeated samples to those of the previous runs 
+2. the likelihood of any new samples (AM000404-AM000473) be derived from a common individual 
+3. regional inference problem based on a non-parametric model trained on individuals of known regional label 
+4. effect or improvement if some of the samples' unlabeled cluster are inferred based on some distance methods e.g. Nearest Neighbour with a certain cutoff
+5. any improvement in infering regional origin if this plate is re-annotated without any guide from previous plates or/and if the training model is based on the repeated samples of the plate
+
+
+```{r,message=FALSE, warning=FALSE}
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(gridExtra)
+source("/Users/tng/Desktop/tng/sturgeon_fluidigm/src/r/depensity.R")
+
+# set path
+setwd("/Users/tng/Desktop/tng/sturgeon_fluidigm/data/assess_5thChip_rr/annotate/")
+
+
+# Meta-value: regional labels
+# regional_5.tbl is a combination of regional.tbl and fifth plates sample info drawn from xls file 
+# (AM006_ST001.xld)
+region.FILE=read.csv("regional_5.tbl", stringsAsFactors = FALSE)
+colnames(region.FILE) <- c("full.name", "region")
+
+
+#### Step 1: Read in the data for the four "training" plates ####
+# chip names
+chip <- c("1381905043",  "1381935339", "1381992037", "1381992302", "1382136064")
+
+
+sturgeon.file <- lapply(chip, function(x) {
+  read.csv(paste(x, "csv", sep ="."), skip = 15, stringsAsFactors = FALSE) %>%
+    tbl_df %>%
+    mutate(long_plate_name = x)
+  }) %>%
+  bind_rows(.id = "plate")
+  
+
+
+#### Step 2: Regional Assignment
+
+data.reorg <- ReOrganizeFile_DP(sturgeon.file)
+
+# reassign K value: the number of cluster due to limitations of fluidigm' scoring capability
+data.K <- data.reorg %>%
+  group_by(assay, plate) %>%
+  mutate(new.k = SpanningK(k, rel.dye1, rel.dye2)) %>%
+  ungroup() %>%
+  group_by(assay) %>%
+  mutate(total.k = max(new.k))
+
+# merging the scoring file with the regional files
+make_region_unk <- function(region) {ifelse(is.na(region),"unk",region)}
+data.w.region <- left_join(data.K, region.FILE) %>%
+  mutate(region = make_region_unk(as.character(region)))
+```
+
+#### address concern:
+`1. consistency between current cluster labels for the repeated samples to those of the previous runs `
+
+```{r, fig.width=20, fig.height=16}
+
+fifth.plate.repeat <- data.w.region %>% 
+  group_by(assay, name) %>% 
+  filter(total.k > 0) %>%  # skip unscored loci
+  mutate(resample_5 = n()>1 && 5 %in% plate, k.5 = sum(new.k*(plate==5)))  %>% 
+  filter(resample_5 == T)
+
+fifth.plate.match <- fifth.plate.repeat %>% 
+  group_by(assay, name) %>%
+  filter(plate!=5) %>%
+  sample_n(1)  %>% 
+  mutate(match.k = k.5==new.k,
+         mismatch.case = 1*(k.5==new.k && k.5 > 0) +
+           2*(k.5==new.k && k.5 == 0) +
+           3*(k.5!=new.k && k.5 > 0 && new.k > 0) +
+           4*(k.5!=new.k && k.5 == 0 && new.k > 0) +
+           5*(k.5!=new.k && k.5 > 0 && new.k == 0) )
+
+cases<-c("matches (both assigned)","matches (both unassign)", "mismatch (both assign)", "mismatch (assign -> unassign)", "mismatch (unassign -> assign )")
+
+stat.by.assay <- fifth.plate.match %>% 
+  group_by(assay.name, mismatch.case) %>% 
+  summarise(tot=n()) %>% 
+  ungroup() %>%
+  group_by(assay.name) %>%
+  mutate(compos = tot*100/sum(tot), max.compos = max(tot*100/sum(tot)), case = cases[mismatch.case])
+
+stat.by.assay$assay.name <- with(stat.by.assay , reorder(assay.name, max.compos))
+
+ggplot(stat.by.assay,aes(x=assay.name, y=compos, fill=case))+
+  geom_bar(stat="identity")+
+  coord_flip()+
+  xlab("Assay")+
+  ylab("% of Samples")
+```
+
+I am curious to see why this assay, ame_17835, contains the highest fraction of cluster unassignment for the fifth plate. 
+```{r}
+ggplot(data.w.region %>% filter(assay.name=="ame_17835"), aes(x=rel.dye1, y=rel.dye2, color = factor(k), pch=factor(plate==5)))+
+  geom_point()
+```
+
+```{r}
+### 
+stat.by.sample <- fifth.plate.match %>% 
+  group_by(full.name, mismatch.case) %>% 
+  summarise(tot=n()) %>% 
+  ungroup() %>%
+  group_by(full.name) %>%
+  mutate(compos = tot*100/sum(tot), max.compos = max(tot*100/sum(tot)), case = cases[mismatch.case])
+
+stat.by.sample$full.name <- with(stat.by.sample , reorder(full.name, max.compos))
+
+ggplot(stat.by.sample,aes(x=full.name, y=compos, fill=case))+
+  geom_bar(stat="identity")+
+  coord_flip()+
+  xlab("Sample")+
+  ylab("% of assay")
+
+```
+
+
+
+
+-- RESUME in regional inference
+```{r}
+# Since there are duplicated samples across four plates, I need to 
+# reduce any duplicated samples and pick the one that with k>0 and the highest sum rel-xy signal
+data.reduce <- data.w.region %>% 
+  group_by(assay, name) %>% 
+  arrange(.,desc(k>0), desc(rel.dye1+rel.dye2)) %>% 
+  filter(row_number()==1)
+
+
+# creating a known-regional training dataset (North and South)
+north.obs <- data.reduce %>%
+  filter(region %in% "North") %>%
+  group_by(assay.name) %>%
+  summarise(ct.0=sum(new.k==0),
+            ct.1=sum(new.k==1),
+            ct.2=sum(new.k==2),
+            ct.3=sum(new.k==3),
+            ct.4=sum(new.k==4),
+            ct.5=sum(new.k==5),
+            max.k =max(total.k) )  # shouldn't need max
+
+south.obs <- data.reduce %>%
+  filter(region %in% "South") %>%
+  group_by(assay.name) %>%
+  summarise(ct.0=sum(new.k==0),
+            ct.1=sum(new.k==1),
+            ct.2=sum(new.k==2),
+            ct.3=sum(new.k==3),
+            ct.4=sum(new.k==4),
+            ct.5=sum(new.k==5),
+            max.k =max(total.k))
+
+```
+
+Leave one out testing for this training data set
+```{r}
+# Leave-one-out
+# Take one of the "North" sample out and re-calculate its predictive label for the "North" training dataset
+n.region.lou <- data.reduce %>%
+  filter(region %in% "North",total.k > 0) %>%
+  arrange(name, assay) %>%
+  group_by(name) %>%
+  summarise(prob.north =get.regional.prob(assay, new.k, region, for.region="North", take.one.out=T), 
+            prob.south =get.regional.prob(assay, new.k, region, for.region="South", take.one.out=T),
+            region.lab = region[1]) %>%
+  mutate(prob.being.north=prob.north/(prob.north+prob.south))
+
+# LOU
+#Take one South sample out and re-calculate its predictive label
+s.region.lou <- data.reduce %>%
+  filter(region %in% "South",total.k > 0) %>%
+  arrange(name, assay) %>%
+  group_by(name) %>%
+  summarise(prob.north =get.regional.prob(assay, new.k, region, for.region="North", take.one.out=T), 
+            prob.south =get.regional.prob(assay, new.k, region, for.region="South", take.one.out=T),
+            region.lab = region[1]) %>%
+  mutate(prob.being.north=prob.north/(prob.north+prob.south))
+
+# Calculate the predictive probabilities for by-catch label
+region.unk.result <- data.reduce %>%
+  filter(!(region %in% c("North","South")),total.k > 0) %>%
+  arrange(name, assay) %>%
+  group_by(name) %>%
+  summarise(prob.north =get.regional.prob(assay, new.k, region, for.region="North"), 
+            prob.south =get.regional.prob(assay, new.k, region, for.region="South"),
+            region.lab = region[1]) %>%
+  mutate(prob.being.north=prob.north/(prob.north+prob.south))
+
+s.region.lou$region.lab <- factor(s.region.lou$region.lab,
+                                  levels=sort(c(" ",unique(s.region.lou$region.lab))))
+
+p<- ggplot()+
+  geom_point(data=n.region.lou, aes(x=as.numeric(as.factor(name)), y=prob.being.north, color=region.lab))+
+  geom_point(data=s.region.lou, aes(x=as.numeric(as.factor(name)), y=prob.being.north, color=region.lab))+
+  geom_point(data=region.unk.result, aes(x=as.numeric(as.factor(name)), y=prob.being.north, color=region.lab))+
+  xlab("Individual Sample")+
+  ylab("Probability in belonging to North DPS")+
+  theme_bw()+
+  facet_wrap(~region.lab,drop=F, scale="free_x",ncol=3)
+
+p
+
+g<-ggplotGrob(p)
+## remove empty panels
+g$grobs[names(g$grobs) %in% c("panel2", "strip_t2")] = NULL
+## remove them from the layout
+g$layout = g$layout[!(g$layout$name %in% c("panel-2","strip_t-2")),]
+## move axis closer to panel
+#g$layout[g$layout$name == "axis_l-2", c("l", "r")] = c(3,3)
+grid.newpage()
+grid.draw(g)
+
+ggsave2 <- ggplot2::ggsave; body(ggsave2) <- body(ggplot2::ggsave)[-2]
+ggsave2("DPS-prediction.pdf", height=20, width=30)
+```
+ 
+ 
