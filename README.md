@@ -53,5 +53,9 @@ order in the directory `./R-main/`.  Each of them should be run with the current
 working directory in R set to be the top level of the repository. (i.e. the directory
 that includes the subdirectory `R-main`). Here we briefly describe what each script does:
 
-1. _01-develop-chip-scoring.R_  describe, describe
-2. _02-process-scored-training-data-chips.R_ describe describe
+1. `R-main/01-develop-chip-scoring.R`:  This script operates on the data that are found in `data/four_training_chips`. The script reads the data in and then creates 4 pages of plots.  Each page has 24 panels and each panel has the data from one locus across the four chips. Line segments connect the same individual typed on different plates.  This helps us identify reliable clusters. The outputs from this script are the PDF files of the figures:
+  - `outputs/plate_x_y1.pdf`
+  - `outputs/plate_x_y2.pdf`
+  - `outputs/plate_x_y3.pdf`
+  - `outputs/plate_x_y4.pdf`
+2. `R-main/02-process-scored-training-data-chips.R` describe describe
