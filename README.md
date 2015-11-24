@@ -8,23 +8,27 @@ All the data and scripts to reproduce our analyses are included herein, but
 before you begin, you should study this carefully.
 
 1. __Preliminaries__: First, you have to get the repository.  Do it like this:
-```sh
-git clone https://github.com/ngthomas/sturgeon_fluidigm
-```
+
+    ```sh
+    git clone https://github.com/ngthomas/sturgeon_fluidigm
+    ```
+  
   Then you should ensure that you have R (version > 3.2) and all the R libraries that we use:
-```r
-install.packages(
-c("MASS", 
-  "dplyr", 
-  "ggplot2", 
-  "grid", 
-  "gridExtra", 
-  "plyr", 
-  "reshape2", 
-  "scales", 
-  "stringr")
-  )
-```
+  
+    ```r
+    install.packages(
+    c("MASS", 
+      "dplyr", 
+      "ggplot2", 
+      "grid", 
+      "gridExtra", 
+      "plyr", 
+      "reshape2", 
+      "scales", 
+      "stringr"
+    ))
+    ```
+    
 2. __Metadata__: Each of the genetic samples was received with a variety of information with them.
   * `data/meta/acipenser.mer` holds the standard meta data attached to the samples in the SWFSC repository.
   * `data/meta/private.csv` does not live with the repository.  These are data such as geographic locations of bycatch that are considered confidential.  So, if you want to reproduce _all_ of the work here, you need to get that file from Carlos and put it in the correct location in the repository (and be sure not to commit  it --- note that it is gitignored.)
