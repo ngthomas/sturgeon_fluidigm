@@ -55,9 +55,11 @@ data.K <- data.reorg %>%
 # score at each locus:
 num_geno_clusts_df <- data.K %>%
   group_by(assay.name) %>%
-  summarize(nClusters = max(total.k)) %>%
-  mutate(Assay = as.character(assay.name)) %>%
-  select(Assay, nClusters)
+  summarize(nClusters = max(total.k)) 
 
 
 
+MultiChipRelativeIntensityPlot(data.K, 
+                               color.by = "genotype", 
+                               dont_reorganize = TRUE, 
+                               prefix = "outputs/plate_x_y_by_final_genotype")

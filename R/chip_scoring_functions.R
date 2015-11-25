@@ -57,10 +57,13 @@ MultiChipRelativeIntensityPlot <- function (DF,
                                             n.pages = 4,
                                             num.columns = 6,
                                             self.exclude = FALSE,
-                                            color.by = "plate") {
-  
-  core.pdata <- ReOrganizeFile(DF)
-  
+                                            color.by = "plate",
+                                            dont_reorganize = FALSE) {
+  if(!dont_reorganize) {
+    core.pdata <- ReOrganizeFile(DF)
+  } else {
+    core.pdata <- DF
+  }
   # make a data frame of all those individuals that appear on more than one plate
   # it turns out that there are 56 individuals that were regenotyped on more
   # than one plate.
@@ -120,14 +123,14 @@ MultiChipRelativeIntensityPlot <- function (DF,
                 aes(x=rel.dye1, y=rel.dye2, color=factor(plate)))
     } else {
       g <- ggplot(data = gdattt, 
-                  aes(x=rel.dye1, y=rel.dye2, color=factor(new.K)))
+                  aes(x=rel.dye1, y=rel.dye2, color=factor(new.k)))
     }
     g <- g + geom_point(alpha=0.7)
     
     seg.data <- list.seg %>% 
       filter(as.integer(assay.name)>min.intv, as.integer(assay.name) <= max.intv) %>%
       droplevels()
-    if(nrow(seg.data)>0) {
+    if(nrow(seg.data)>0 && color.by == "plate") {
       g<- g + geom_segment(data=seg.data,
                            aes(x=x.start, y=y.start, xend=x.end, yend=y.end, color=plate.pair), linetype=5)
     }
