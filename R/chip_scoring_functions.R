@@ -9,22 +9,26 @@ require(ggplot2)
 #' 
 #' 
 ReOrganizeFile <- function (x) {
-  y <- x[x$Type=="Unknown",] 
-  y$Name <- factor(y$Name)
-  y$Final <-factor(y$Final, levels=c("No Call","XX","XY", "YY", "Invalid"))
-  y$Assay <- factor(y$Assay, levels = unique(y$Assay))
-  
-  ret <- data.frame(
-    plate = y$plate,
-    name=y$Name,
-    assay=y$Assay,
-    rel.dye1 = y$Allele.X.1,
-    rel.dye2 = y$Allele.Y.1,
-    k=as.numeric(y$Final)-1
-  )
-  
-  ret <- arrange(ret, assay, name)
-  tbl_df(ret)
+  x %>%
+    filter(Type=="Unknown") %>% ## remove NTC 
+    mutate(
+      Name = Name,
+      Final = factor(Final, levels=c("No Call","XX","XY", "YY", "Invalid")),
+      Assay = factor(Assay, levels = unique(Assay)),
+      plate = as.integer(plate),
+      assay = as.numeric(Assay),
+      name = as.numeric(factor(Name)),
+      k = as.numeric(Final) - 1
+    ) %>%
+    rename(
+      rel.dye1 = Allele.X.1,
+      rel.dye2 = Allele.Y.1,
+      full.name = Name,
+      assay.name = Assay,
+      plate.name = long_plate_name
+    ) %>%
+    arrange(assay, name) %>%
+    select(plate, assay, name, rel.dye1, rel.dye2, k, full.name, assay.name, plate.name)
 }
 
 
@@ -45,10 +49,15 @@ ReOrganizeFile <- function (x) {
 #' @param n.pages  The number of pages to break the plots over.  Default
 #' is 4 which gives 24 loci per page
 #' @param num.columns  How many columns per page.  Default is 6.
+#' @param self.exclude A boolean option for omitting lines drawn between identical
+#' samples within the same plate. Default is False.
+#' @param color.by 
 MultiChipRelativeIntensityPlot <- function (DF, 
                                             prefix="plate_x_y", 
                                             n.pages = 4,
-                                            num.columns = 6) {
+                                            num.columns = 6,
+                                            self.exclude = FALSE,
+                                            color.by = "plate") {
   
   core.pdata <- ReOrganizeFile(DF)
   
@@ -82,6 +91,10 @@ MultiChipRelativeIntensityPlot <- function (DF,
     seg.pt
   })
   
+  # if self exclude is true, identical sample segments are not drawn if those samples
+  # are from the same plate
+  if (self.exclude) list.seg <- list.seg %>% filter(as.integer(plate.1)!=as.integer(plate.2))
+  
   # now, because the apply function returns a matrix, we have to coerce all these
   # things back to numeric or factors with correct levels.  We might be able to 
   # avoid this if we adply-ed rather than apply-ed.  But it's done and working now!
@@ -101,7 +114,7 @@ MultiChipRelativeIntensityPlot <- function (DF,
     g <- ggplot(data=core.pdata %>% 
                   filter(as.integer(assay)>min.intv, as.integer(assay) <= max.intv) %>% 
                   droplevels(), 
-                aes(x=rel.dye1, y=rel.dye2, color=factor(plate))) +
+                aes(x=rel.dye1, y=rel.dye2, color=factor(color.by))) +
       geom_point(alpha=0.7)
     
     seg.data <- list.seg %>% 
