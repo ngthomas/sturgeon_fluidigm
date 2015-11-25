@@ -75,7 +75,7 @@ MultiChipRelativeIntensityPlot <- function (DF,
   # here, Thomas has thrown down some righteous plyr to get a data 
   # frame of the segments that should be connected between different points
   # that represent re-genotyped individuals' values on the final plot
-  list.seg<-ddply(repeat.data, .(assay, name), function(x) {
+  list.seg<-ddply(repeat.data, .(assay.name, name), function(x) {
     num.rep <- dim(x)[1]
     all.combn <- combn(1:num.rep, 2)  
     seg.pt <- t(apply(all.combn, 2, function(i) {
@@ -103,28 +103,35 @@ MultiChipRelativeIntensityPlot <- function (DF,
   list.seg$x.end <- as.numeric(as.character(list.seg$x.end))
   list.seg$y.end <- as.numeric(as.character(list.seg$y.end))
   
-  
-  
+
   # Do the ggplotting, breaking over n.pages pages
   n.loci <- length(unique(core.pdata$assay))
   for (i in 1:(n.pages)) {
     
     min.intv <- round(n.loci/n.pages)*(i-1)
     max.intv <- min.intv + round(n.loci/n.pages)
-    g <- ggplot(data=core.pdata %>% 
-                  filter(as.integer(assay)>min.intv, as.integer(assay) <= max.intv) %>% 
-                  droplevels(), 
-                aes(x=rel.dye1, y=rel.dye2, color=factor(color.by))) +
-      geom_point(alpha=0.7)
+    
+    gdattt <- core.pdata %>% 
+      filter(as.integer(assay)>min.intv, as.integer(assay) <= max.intv) %>% 
+      droplevels()
+      
+    if(color.by == "plate") {
+      g <- ggplot(data = gdattt, 
+                aes(x=rel.dye1, y=rel.dye2, color=factor(plate)))
+    } else {
+      g <- ggplot(data = gdattt, 
+                  aes(x=rel.dye1, y=rel.dye2, color=factor(new.K)))
+    }
+    g <- g + geom_point(alpha=0.7)
     
     seg.data <- list.seg %>% 
-      filter(as.integer(assay)>min.intv, as.integer(assay) <= max.intv) %>%
+      filter(as.integer(assay.name)>min.intv, as.integer(assay.name) <= max.intv) %>%
       droplevels()
-    if(nrow(seg.data)>0){
+    if(nrow(seg.data)>0) {
       g<- g + geom_segment(data=seg.data,
                            aes(x=x.start, y=y.start, xend=x.end, yend=y.end, color=plate.pair), linetype=5)
     }
-    g<- g + facet_wrap(~assay, ncol = num.columns )+
+    g<- g + facet_wrap(~assay.name, ncol = num.columns )+
       theme_bw()
     
     ggsave(paste0(prefix,i,".pdf"),g, width = 34, height = 22)
