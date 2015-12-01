@@ -39,7 +39,7 @@ before you begin, you should study this carefully.
     - `data/training_chips/1381935339_raw.csv`
     - `data/training_chips/1381992037_raw.csv`
     - `data/training_chips/1381992302_raw.csv`
-  * After those four training chips were used to develop the tetraploid scoring methodology, we scored those four plates using that methodology.  The resulting scored genotypes for the different individuals are in `data/training_chips/training_chips_scored.csv`.
+  * After those four training chips were used to develop the tetraploid scoring methodology, we scored those four plates using that methodology.  The resulting scored genotypes for the different training individuals are in `data/training_chips/training_chips_scored.csv`. This file contains the genotypes that can be assigned from the Fluidigm genotyping software.  However, the Fluidigm software is designed for only the 3 genotypes of a diploid.  Hence, at loci at which we can reliably score more than three genotypes, we overload some of the genotype clusters in that we might call a cluster at the lower right of the image as an "XX" and then we also will score a cluster at the upper left as an "XX" and then, during post-processing, we correct the calls in the upper left to refer to either the 4th or 5th cluster.  This is taken care of in `R-main/01-develop-chip-scoring.R`.
 
 
 ### Scripts to Run the analyses.
@@ -54,4 +54,18 @@ that includes the subdirectory `R-main`). Here we briefly describe what each scr
   - `outputs/plate_x_y2.pdf`
   - `outputs/plate_x_y3.pdf`
   - `outputs/plate_x_y4.pdf`
+
+ After those outputs came out, they were used to develop the scoring methodology and we scored those training chips accordingly. We have provided images of all the intensities of the points as in the plate_x_y outputs above, but coloring things by genotype.  This was done both for all plates combined and for each plate separately in files with names of the forms:
+  - `outputs/plate_x_y_by_final_genotype_plate_1381905043_only1.pdf`
+  - `outputs/plate_x_y_by_final_genotype_plate_1381905043_only2.pdf`
+  -  . . . 
+  - `outputs/late_x_y_by_final_genotype_plate_1381935339_only1.pdf`
+  - `outputs/plate_x_y_by_final_genotype_plate_1381935339_only2.pdf`
+  -  . . .
+  -  `outputs/plate_x_y_by_final_genotype_plates_combined1.pdf`
+  -  `outputs/plate_x_y_by_final_genotype_plates_combined2.pdf`
+  -  . . .
+
+
+
 2. `R-main/02-process-scored-training-data-chips.R` describe describe
