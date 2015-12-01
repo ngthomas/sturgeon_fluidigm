@@ -24,6 +24,7 @@ four_plates <- lapply(chips, function(chip) {
 
 
 #### Step 2:  Plot the four training plates together at each locus, connecting re-genotyped individuals ####
+# and we also color according to plate
 if(!file.exists("outputs")) dir.create("outputs")
 MultiChipRelativeIntensityPlot(four_plates, prefix = "outputs/plate_x_y")
 
@@ -57,9 +58,40 @@ num_geno_clusts_df <- data.K %>%
   group_by(assay.name) %>%
   summarize(nClusters = max(total.k)) 
 
+# and we write that to the output
+num_geno_clusts_df %>%
+  write.csv(file = "outputs/number-of-genotype-clusters.csv", row.names = FALSE)
+
+# and we store a variable for using in the paper
+REPORT_num_geno_clusts_table <- num_geno_clusts_df %>%
+  group_by(nClusters) %>% tally()
 
 
-MultiChipRelativeIntensityPlot(data.K, 
+
+
+# now, I want to make four pages of plots like the plate_x_y plots, but I want
+# to color things  by genotype and I want to put the number of genotypes in the 
+# names of things.  So, I will make a new data.K that has an assay name column that
+# includes that info.   A lot of the following is to keep the factor levels in the right order.
+data.K2 <- data.K %>%
+  arrange(assay, name) %>%
+  mutate(assay.name = paste(assay.name, "  (", total.k, ")", sep = ""))
+data.K2$assay.name <- factor(data.K2$assay.name, levels = unique(data.K2$assay.name))
+
+
+
+# make these for the combined plates
+MultiChipRelativeIntensityPlot(data.K2, 
                                color.by = "genotype", 
                                dont_reorganize = TRUE, 
-                               prefix = "outputs/plate_x_y_by_final_genotype")
+                               prefix = "outputs/plate_x_y_by_final_genotype_plates_combined")
+
+# and then make them for each plate separately
+for(i in unique(data.K2$plate.name)) {
+  tmp <- data.K2 %>% filter(plate.name == i)
+  MultiChipRelativeIntensityPlot(tmp, 
+                                 color.by = "genotype", 
+                                 dont_reorganize = TRUE, 
+                                 prefix = paste("outputs/plate_x_y_by_final_genotype_plate", i, "only", sep = "_")
+  )
+}
