@@ -118,7 +118,11 @@ s.region.lou$region.lab <- factor(s.region.lou$region.lab,
 
 
 # Function: creates a new log log-likelihood scale transformation object for the probability axis
-log_split <- function(x) ifelse(x<0.5, log(x,100)-log(0.5,100),-log(1-x,100)+log(0.5,100) )
+log_split <- function(x) {
+  val<-ifelse(x<0.5, log(x,100)-log(0.5,100),-log(1-x,100)+log(0.5,100) )
+  val[is.infinite(val)] <- 7
+  val
+}
 inv_log_split <- function(x ) ifelse(x<0,(100^x)*0.5, 1-2*(100^(-x))) 
 log_split_trans <- function () trans_new("log_split",log_split,inv_log_split)
 
@@ -149,4 +153,4 @@ grid.newpage()
 grid.draw(g)
 
 ggsave2 <- ggplot2::ggsave; body(ggsave2) <- body(ggplot2::ggsave)[-2]
-ggsave2("outputs/DPS-prediction.pdf", height=20, width=30)
+ggsave2("outputs/DPS-prediction.pdf", height=17, width=20)

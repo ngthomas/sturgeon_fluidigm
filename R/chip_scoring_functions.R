@@ -120,9 +120,9 @@ MultiChipRelativeIntensityPlot <- function (DF,
     gdattt <- DF %>% 
       filter(as.integer(assay)>min.intv, as.integer(assay) <= max.intv) %>% 
       droplevels()
-    
     g <- ggplot(data = gdattt, 
                 aes_string(x="rel.dye1", y="rel.dye2", color=paste0("factor(", color.by,")")))
+
     g <- g + geom_point(alpha=0.7)
     
     if (color.by == "new.k") {
@@ -133,7 +133,7 @@ MultiChipRelativeIntensityPlot <- function (DF,
     seg.data <- list.seg %>% 
       filter(as.integer(assay.name)>min.intv, as.integer(assay.name) <= max.intv) %>%
       droplevels()
-    
+
     if (!exclude.seg) {
       if(nrow(seg.data)>0) {
         g<- g + geom_segment(data=seg.data,
@@ -155,9 +155,6 @@ MultiChipRelativeIntensityPlot <- function (DF,
     g<- g + facet_wrap(~assay.name, ncol = num.columns )+
       theme_bw() +
       scale_color_manual(values=cbPalette)
-    
-    if (color.by == "new.k") {
-    }
     
     ggsave(paste0(prefix,i,".pdf"),g, width = 34, height = 22)
   }
