@@ -1,6 +1,7 @@
 require(plyr)
 require(dplyr)
 require(ggplot2)
+library(RColorBrewer)
 
 
 #### HELPER FUNCTIONS ####
@@ -52,24 +53,29 @@ ReOrganizeFile <- function (x) {
 #' @param self.exclude A boolean option for omitting lines drawn between identical
 #' samples within the same plate. Default is False.
 #' @param color.by 
+#' @param exclude.seg if it is true, segments are drawn to show how the same sample 
+#' labels are traveled within plates and plates 
 MultiChipRelativeIntensityPlot <- function (DF, 
                                             prefix="plate_x_y", 
                                             n.pages = 4,
                                             num.columns = 6,
                                             self.exclude = FALSE,
-                                            color.by = "plate") {
+                                            color.by = "plate",
+                                            exclude.seg = FALSE,
+                                            alreadyOrganized = FALSE) {
   
-  core.pdata <- ReOrganizeFile(DF)
+  if (!alreadyOrganized) {
+    DF <- ReOrganizeFile(DF) }
   
   # make a data frame of all those individuals that appear on more than one plate
   # it turns out that there are 56 individuals that were regenotyped on more
   # than one plate.
-  repeat.data <- core.pdata %>%
+  repeat.data <- DF %>%
     group_by(assay,name) %>%
     summarise(count = n()) %>%
     filter(count > 1) %>%
     select(assay, name) %>%
-    inner_join(core.pdata) 
+    inner_join(DF) 
   
   
   # here, Thomas has thrown down some righteous plyr to get a data 
@@ -105,34 +111,53 @@ MultiChipRelativeIntensityPlot <- function (DF,
   
 
   # Do the ggplotting, breaking over n.pages pages
-  n.loci <- length(unique(core.pdata$assay))
+  n.loci <- length(unique(DF$assay))
   for (i in 1:(n.pages)) {
     
     min.intv <- round(n.loci/n.pages)*(i-1)
     max.intv <- min.intv + round(n.loci/n.pages)
     
-    gdattt <- core.pdata %>% 
+    gdattt <- DF %>% 
       filter(as.integer(assay)>min.intv, as.integer(assay) <= max.intv) %>% 
       droplevels()
-      
-    if(color.by == "plate") {
-      g <- ggplot(data = gdattt, 
-                aes(x=rel.dye1, y=rel.dye2, color=factor(plate)))
-    } else {
-      g <- ggplot(data = gdattt, 
-                  aes(x=rel.dye1, y=rel.dye2, color=factor(new.K)))
-    }
+    
+    g <- ggplot(data = gdattt, 
+                aes_string(x="rel.dye1", y="rel.dye2", color=paste0("factor(", color.by,")")))
     g <- g + geom_point(alpha=0.7)
     
+    if (color.by == "new.k") {
+      g <- g + geom_text(aes(label=total.k, x=1, y=1), color="black")
+    }
+    
+
     seg.data <- list.seg %>% 
       filter(as.integer(assay.name)>min.intv, as.integer(assay.name) <= max.intv) %>%
       droplevels()
-    if(nrow(seg.data)>0) {
-      g<- g + geom_segment(data=seg.data,
-                           aes(x=x.start, y=y.start, xend=x.end, yend=y.end, color=plate.pair), linetype=5)
+    
+    if (!exclude.seg) {
+      if(nrow(seg.data)>0) {
+        g<- g + geom_segment(data=seg.data,
+                             aes(x=x.start, 
+                                 y=y.start, 
+                                 xend=x.end, 
+                                 yend=y.end, 
+                                 color=plate.pair),
+                             linetype=5)
+      }}
+    
+    # color-blind-friendly palette: http://www.cookbook-r.com/Graphs/Colors_%28ggplot2%29/
+    cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+    
+    if (color.by == "new.k") {
+      cbPalette[1] <- "light grey"
     }
+    
     g<- g + facet_wrap(~assay.name, ncol = num.columns )+
-      theme_bw()
+      theme_bw() +
+      scale_color_manual(values=cbPalette)
+    
+    if (color.by == "new.k") {
+    }
     
     ggsave(paste0(prefix,i,".pdf"),g, width = 34, height = 22)
   }
@@ -188,7 +213,7 @@ SpanningK <- function(orig.k ,rel.dye1, rel.dye2)
 #' @param data.rm 
 
 
-Cal.Pred.LOU <- function(data, data.rm){
+cal.pred.one.y <- function(data, data.rm){
   
   y.tbl <- as.matrix(data[,3:7])-data.rm
   okay.loci <- data$max.k > 0
@@ -198,12 +223,14 @@ Cal.Pred.LOU <- function(data, data.rm){
     blank
   }))
   
-  #hyperparam value : for now, assume uniform prior
+  #hyperparam value : for now, assume uniform
   hyper.alpha <- ifelse(data$max.k >0, 1/data$max.k, 0)
   
+  #data$max.
   new.alpha<- (hyper.alpha + y.tbl)*occupy.matrix
   
-  ## Below is the longer way to express the predictive fn of Polya-Eggenberg urn scheme
+  ## This is the longer way to express predictive Polya-Eggenberg urn scheme
+  
   #lg.new.alpha <- lgamma(new.alpha)
   #lg.new.alpha[occupy.matrix==0]<-0
   #p1<- rowSums(lg.new.alpha)
@@ -219,10 +246,10 @@ Cal.Pred.LOU <- function(data, data.rm){
   prob.new
 }
 
-get.regional.prob <- function(assay, new.k, region, for.region="North", take.one.out=F) {
+get.regional.prob <- function(assay, new.k, region, for.region="North", take.one.out=F, n.loci=96, n.k=5) {
   
-  n.loci<- dim(prob.matrix.north)[1]
-  n.k <- dim(prob.matrix.north)[2]
+  #n.loci<- dim(prob.matrix.north)[1]
+  #n.k <- dim(prob.matrix.north)[2]
   region <- region[1]
   
   rm.matrix<-matrix(0, ncol=n.k, nrow=n.loci)

@@ -50,18 +50,20 @@ library(ggplot2)
 library(plyr)
 library(dplyr)
 library(scales)
-source("/Users/tng/Desktop/tng/sturgeon_fluidigm/src/r/depensity.R")
+source("R/chip_scoring_functions.R")
 
 
 # set path
-setwd("/Users/tng/Desktop/tng/sturgeon_fluidigm/data/assess_5thChip_rr/raw")
+#setwd("data/assess_5thChip_rr/raw")
 
 #### Step 1: Read in the data for the four "training" plates ####
 # chip names
 chip <- c("1381905043",  "1381935339", "1381992037", "1381992302", "1382136064")
 
 sturgeon.file <- lapply(chip, function(x) {
-  read.csv(paste(x, "_raw.csv_tbl", sep =""), stringsAsFactors = FALSE) %>%
+  read.csv(paste("data/assess_5thChip_rr/raw/",x, "_raw.csv", sep =""), 
+           skip = 15,
+           stringsAsFactors = FALSE) %>%
     tbl_df %>%
     mutate(long_plate_name = x)
   }) %>%

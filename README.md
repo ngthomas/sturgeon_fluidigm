@@ -15,6 +15,7 @@ before you begin, you should study this carefully.
   
   Then you should ensure that you have R (version > 3.2) and all the R libraries that we use:
   
+  MIGHT NEED TO PROVIDE PACKAGE VERSION 
     ```r
     install.packages(
     c("MASS", 

@@ -13,12 +13,12 @@ four_plates <- lapply(chips, function(chip) {
   path <- file.path("data/training_chips", ff)  # file path
   tmp <- read.csv(path, skip = 15, stringsAsFactors = FALSE) 
   bottom_line <- which(tmp$ID == "Dose Meter Reading Data") - 1  # remove the bottom, irrelevant part of each file.
-  tmp <- tmp[1:bottom_line,]
-  tmp$long_plate_name = chip
-  tmp
+  tmp[1:bottom_line,] %>%
+    tbl_df %>%
+    mutate(long_plate_name = chip)
   }) %>%
-  bind_rows(.id = "plate") %>%     # in the end, bind them all together.
-  tbl_df
+  bind_rows(.id = "plate")      # in the end, bind them all together.
+  
 
 # at this point "four_plates" is the long format data that we need
 
@@ -49,6 +49,13 @@ data.K <- data.reorg %>%
   ungroup() %>%
   group_by(assay) %>%
   mutate(total.k = max(new.k))
+
+
+MultiChipRelativeIntensityPlot(data.K, 
+                               prefix = "outputs/plate_annot_clust",
+                               alreadyOrganized = TRUE,
+                               color.by = "new.k",
+                               exclude.seg=TRUE)
 
 
 # and now we can get a data frame of the number of clusters that we
