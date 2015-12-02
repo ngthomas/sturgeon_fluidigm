@@ -22,7 +22,9 @@ chip <- c("1381905043",  "1381935339", "1381992037", "1381992302", "1382136064")
 
 sturgeon.file <- lapply(chip, function(x) {
     
-  read.csv(paste0("data/assess_5thChip_rr/annotate/", x, ".csv", sep = ""), stringsAsFactors = FALSE) %>%
+  read.csv(paste0("data/assess_5thChip_rr/annotate/", x, ".csv", sep = ""), 
+           skip=15,
+           stringsAsFactors = FALSE) %>%
     tbl_df %>%
     mutate(long_plate_name = x)
 }) %>%
@@ -154,3 +156,9 @@ grid.draw(g)
 
 ggsave2 <- ggplot2::ggsave; body(ggsave2) <- body(ggplot2::ggsave)[-2]
 ggsave2("outputs/DPS-prediction.pdf", height=17, width=20)
+
+
+## pass genotype df to step 03
+saveRDS(data.reduce,
+        file="outputs/genotype_from_five_chips.rds",
+        compress = "xz")

@@ -1,3 +1,18 @@
+Chip Run Info,C:\Users\biopipe\Desktop\Sturgeon_1_SNPtype_1381935339\ChipRun.bml,1381935339,96.96 (138x),,ROX,FAM-MGB : VIC-MGB,4/4/2014 5:46:55 PM,00:01:09,EP1-50017
+Application Version,3.1.3
+Application Build,20120816.1511
+Export Type,Detailed Table Results,Standard
+Number of Combined Chip Runs,1,9216
+Confidence Threshold,65.00
+Normalization Method,None
+Allele Probe Type Mapping,Allele X,FAM-MGB
+Allele Probe Type Mapping,Allele Y,VIC-MGB
+Allele Axis Mapping,Allele X,X
+Allele Axis Mapping,Allele Y,Y
+
+
+Experiment Information,Experiment Information,Experiment Information,Experiment Information,Experiment Information,Experiment Information,Results,Results,Results,Results,Results,Results
+Chamber,SNP Assay and Allele Names,SNP Assay and Allele Names,SNP Assay and Allele Names,Sample,Sample,Call Information,Call Information,Call Information,Call Information,Intensity,Intensity
 ID,Assay,Allele X,Allele Y,Name,Type,Auto,Confidence,Final,Converted,Allele X,Allele Y
 S96-A01,ame_12390,G,A,AM000216,Unknown,No Call,0,No Call,No Call,0.979312412552468,0.468019188486908
 S96-A02,ame_15103,G,C,AM000216,Unknown,YY,99.52,XX,G:G,0.292898536489539,1.09439151360377

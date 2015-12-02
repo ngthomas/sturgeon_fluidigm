@@ -8,6 +8,7 @@ library(reshape2)
 
 # first, read the data in
 g <- tbl_df(read.csv(gzfile("data/new_score_allplates.csv.gz"), stringsAsFactors = FALSE))
+#g<- readRDS("outputs/genotype_from_five_chips.rds")
 
 # now, we have an issue to deal with. Some individuals were scored on multiple
 # plates.  Here is what I propose we do:
