@@ -89,16 +89,18 @@ data.K2$assay.name <- factor(data.K2$assay.name, levels = unique(data.K2$assay.n
 
 # make these for the combined plates
 MultiChipRelativeIntensityPlot(data.K2, 
-                               color.by = "genotype", 
-                               dont_reorganize = TRUE, 
+                               color.by = "new.k", 
+                               alreadyOrganized = TRUE, 
+                               exclude.seg=TRUE,
                                prefix = "outputs/plate_x_y_by_final_genotype_plates_combined")
 
 # and then make them for each plate separately
 for(i in unique(data.K2$plate.name)) {
   tmp <- data.K2 %>% filter(plate.name == i)
   MultiChipRelativeIntensityPlot(tmp, 
-                                 color.by = "genotype", 
-                                 dont_reorganize = TRUE, 
+                                 color.by = "new.k", 
+                                 alreadyOrganized = TRUE, 
+                                 exclude.seg=TRUE,
                                  prefix = paste("outputs/plate_x_y_by_final_genotype_plate", i, "only", sep = "_")
   )
 }
