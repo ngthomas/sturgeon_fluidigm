@@ -2,6 +2,7 @@
 
 library(dplyr)
 library(reshape2)
+library(stringr)
 
 
 #### Data reading and munging  ####
@@ -45,12 +46,12 @@ gc4 <- how_many_loci_typed %>%
   anti_join(gc3, .)
 
 
-# so, we have tossed about 74 individuals because they had too much missing data.
+# so, we have tossed about 44 individuals because they had too much missing data.
 # We could be less stringent in the future
 length(unique(gc3$name))
 length(unique(gc4$name))
 
-
+length(unique(gc3$name)) - length(unique(gc4$name))
 
 
 # now that we have the genotypes we want to use, we will need to put them into a wide-format
