@@ -13,12 +13,12 @@ four_plates <- lapply(chips, function(chip) {
   path <- file.path("data/training_chips", ff)  # file path
   tmp <- read.csv(path, skip = 15, stringsAsFactors = FALSE) 
   bottom_line <- which(tmp$ID == "Dose Meter Reading Data") - 1  # remove the bottom, irrelevant part of each file.
-  tmp <- tmp[1:bottom_line,]
-  tmp$long_plate_name = chip
-  tmp
+  tmp[1:bottom_line,] %>%
+    tbl_df %>%
+    mutate(long_plate_name = chip)
   }) %>%
-  bind_rows(.id = "plate") %>%     # in the end, bind them all together.
-  tbl_df
+  bind_rows(.id = "plate")      # in the end, bind them all together.
+  
 
 # at this point "four_plates" is the long format data that we need
 
@@ -52,6 +52,13 @@ data.K <- data.reorg %>%
   mutate(total.k = max(new.k))
 
 
+MultiChipRelativeIntensityPlot(data.K, 
+                               prefix = "outputs/plate_annot_clust",
+                               alreadyOrganized = TRUE,
+                               color.by = "new.k",
+                               exclude.seg=TRUE)
+
+
 # and now we can get a data frame of the number of clusters that we
 # score at each locus:
 num_geno_clusts_df <- data.K %>%
@@ -82,16 +89,18 @@ data.K2$assay.name <- factor(data.K2$assay.name, levels = unique(data.K2$assay.n
 
 # make these for the combined plates
 MultiChipRelativeIntensityPlot(data.K2, 
-                               color.by = "genotype", 
-                               dont_reorganize = TRUE, 
+                               color.by = "new.k", 
+                               alreadyOrganized = TRUE, 
+                               exclude.seg=TRUE,
                                prefix = "outputs/plate_x_y_by_final_genotype_plates_combined")
 
 # and then make them for each plate separately
 for(i in unique(data.K2$plate.name)) {
   tmp <- data.K2 %>% filter(plate.name == i)
   MultiChipRelativeIntensityPlot(tmp, 
-                                 color.by = "genotype", 
-                                 dont_reorganize = TRUE, 
+                                 color.by = "new.k", 
+                                 alreadyOrganized = TRUE, 
+                                 exclude.seg=TRUE,
                                  prefix = paste("outputs/plate_x_y_by_final_genotype_plate", i, "only", sep = "_")
   )
 }
