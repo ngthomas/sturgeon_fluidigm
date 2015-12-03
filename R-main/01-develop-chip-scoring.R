@@ -11,10 +11,7 @@ chips <- c("1381905043",  "1381935339", "1381992037", "1381992302")
 four_plates <- lapply(chips, function(chip) {
   ff <- paste(chip, "_raw.csv", sep = "")   # filename
   path <- file.path("data/training_chips", ff)  # file path
-  tmp <- read.csv(path, skip = 15, stringsAsFactors = FALSE) 
-  bottom_line <- which(tmp$ID == "Dose Meter Reading Data") - 1  # remove the bottom, irrelevant part of each file.
-  tmp[1:bottom_line,] %>%
-    tbl_df %>%
+  read_fluidigm_detailed_csv(path) %>%
     mutate(long_plate_name = chip)
   }) %>%
   bind_rows(.id = "plate")      # in the end, bind them all together.
@@ -31,7 +28,7 @@ MultiChipRelativeIntensityPlot(four_plates, prefix = "outputs/plate_x_y")
 
 
 
-#### Step 3:  Read in how those four chips were scored using the fluidigm software ####
+#### Step 3:  Read in how those four chips were scored by eye upon the fluidigm software and translate that into up to 5 clusters ####
 # Fluidigm is expecting only 3 genotypes, so, if we are scoring five genotypes, we call
 # them one of three genotypes, but if we call genotype XX way up in the upper corner,
 # we post-process that later and realize it is a 4th cluster.  That is taken care of
@@ -52,13 +49,30 @@ data.K <- data.reorg %>%
   mutate(total.k = max(new.k))
 
 
+#### Step 4. I make four pages of plots like the plate_x_y plots, but color things by genotype  ####
 MultiChipRelativeIntensityPlot(data.K, 
-                               prefix = "outputs/plate_annot_clust",
+                               prefix = "outputs/plate_x_y_by_final_genotype_plates_combined",
                                alreadyOrganized = TRUE,
                                color.by = "new.k",
                                exclude.seg=TRUE)
 
 
+
+
+# and then make them for each plate separately
+for(i in unique(data.K2$plate.name)) {
+  tmp <- data.K2 %>% filter(plate.name == i)
+  MultiChipRelativeIntensityPlot(tmp, 
+                                 color.by = "new.k", 
+                                 alreadyOrganized = TRUE, 
+                                 exclude.seg=TRUE,
+                                 prefix = paste("outputs/plate_x_y_by_final_genotype_plate", i, "only", sep = "_")
+  )
+}
+
+
+
+#### Report Number of Clusters And store in Variable for a Table ####
 # and now we can get a data frame of the number of clusters that we
 # score at each locus:
 num_geno_clusts_df <- data.K %>%
@@ -72,35 +86,3 @@ num_geno_clusts_df %>%
 # and we store a variable for using in the paper
 REPORT_num_geno_clusts_table <- num_geno_clusts_df %>%
   group_by(nClusters) %>% tally()
-
-
-
-
-# now, I want to make four pages of plots like the plate_x_y plots, but I want
-# to color things  by genotype and I want to put the number of genotypes in the 
-# names of things.  So, I will make a new data.K that has an assay name column that
-# includes that info.   A lot of the following is to keep the factor levels in the right order.
-data.K2 <- data.K %>%
-  arrange(assay, name) %>%
-  mutate(assay.name = paste(assay.name, "  (", total.k, ")", sep = ""))
-data.K2$assay.name <- factor(data.K2$assay.name, levels = unique(data.K2$assay.name))
-
-
-
-# make these for the combined plates
-MultiChipRelativeIntensityPlot(data.K2, 
-                               color.by = "new.k", 
-                               alreadyOrganized = TRUE, 
-                               exclude.seg=TRUE,
-                               prefix = "outputs/plate_x_y_by_final_genotype_plates_combined")
-
-# and then make them for each plate separately
-for(i in unique(data.K2$plate.name)) {
-  tmp <- data.K2 %>% filter(plate.name == i)
-  MultiChipRelativeIntensityPlot(tmp, 
-                                 color.by = "new.k", 
-                                 alreadyOrganized = TRUE, 
-                                 exclude.seg=TRUE,
-                                 prefix = paste("outputs/plate_x_y_by_final_genotype_plate", i, "only", sep = "_")
-  )
-}

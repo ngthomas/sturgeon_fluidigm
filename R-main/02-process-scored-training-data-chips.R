@@ -15,20 +15,18 @@ region.FILE=read.csv("data/assess_5thChip_rr/annotate/regional_5.tbl", stringsAs
 colnames(region.FILE) <- c("full.name", "region")
 
 
-#### Step 1: Read in the data for the four "training" plates ####
-# chip names
-chip <- c("1381905043",  "1381935339", "1381992037", "1381992302", "1382136064")
+#### Step 1: Read in the data for the four "training" plates and plate 5 of more indivs ####
 
+# Read in the scored raw intensity data for the four "training" plates
+scored_training_plates <- read.csv("data/training_chips/training_chips_scored.csv", stringsAsFactors = FALSE, row.names = 1) %>%
+  tbl_df
 
-sturgeon.file <- lapply(chip, function(x) {
-    
-  read.csv(paste0("data/assess_5thChip_rr/annotate/", x, ".csv", sep = ""), 
-           skip=15,
-           stringsAsFactors = FALSE) %>%
-    tbl_df %>%
-    mutate(long_plate_name = x)
-}) %>%
-bind_rows(.id = "plate")
+# read in raw intensity data for plate 5
+plate5 <- read_fluidigm_detailed_csv("data/more_chips/1382136064_scored.csv") %>%
+  mutate(plate = 5, long_plate_name = 1382136064)
+
+# combine those
+sturgeon.file <- bind_rows(scored_training_plates, plate5)
 
 
 

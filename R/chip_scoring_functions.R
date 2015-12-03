@@ -5,6 +5,28 @@ library(RColorBrewer)
 
 
 #### HELPER FUNCTIONS ####
+#' read a fluidigm detailed table results and lop off the garbage at the bottom
+#' 
+#' this skips the preamble info and chucks the output
+#' past the lines with "Dose Meter Reading Data" if that line is present.
+#' If it isn't, then it just returns everything. Wraps output in tbl_df
+#' @param path  path to the file
+read_fluidigm_detailed_csv <- function(path) {
+  tmp <- tbl_df(read.csv(path, skip = 15, stringsAsFactors = FALSE))
+  
+  DoseMeterLine <- which(tmp$ID == "Dose Meter Reading Data")
+  
+  if(length(DoseMeterLine) == 0) {
+    return(tmp)
+  }
+  bottom_line <- DoseMeterLine - 1  # remove the bottom, irrelevant part of each file.
+  
+  tmp[1:bottom_line,]
+}
+
+
+
+
 #' Organize the combined data.  Put on appropriate factor levels, etc
 #' @param x  the combined_file (like that created in Step 1 of 01-develop-chip-scoring.R)
 #' 
@@ -78,7 +100,7 @@ MultiChipRelativeIntensityPlot <- function (DF,
     inner_join(DF) 
   
   
-  # here, Thomas has thrown down some righteous plyr to get a data 
+  # here, Thomas wrote some code to get a data 
   # frame of the segments that should be connected between different points
   # that represent re-genotyped individuals' values on the final plot
   list.seg<-ddply(repeat.data, .(assay.name, name), function(x) {
@@ -95,12 +117,26 @@ MultiChipRelativeIntensityPlot <- function (DF,
     
     colnames(seg.pt)<- c("x.start", "y.start", "x.end", "y.end", "plate.pair")
     seg.pt
-  })
+  }) %>%
+    tbl_df
+  
+  
   
   # if self exclude is true, identical sample segments are not drawn if those samples
   # are from the same plate
-  if (self.exclude) list.seg <- list.seg %>% filter(as.integer(plate.1)!=as.integer(plate.2))
+  if (self.exclude) {
+    # add on columns of plate.1 and plate.2 (I don't know where these were supposed to come from...Thomas had a call out to them.)
+    list.seg <- list.seg %>%
+      mutate(
+        plate.1 = str_split_fixed(plate.pair, "_", 2)[,1],
+        plate.2 = str_split_fixed(plate.pair, "_", 2)[,2]
+      )
+    
+    list.seg <- list.seg %>% filter(as.integer(plate.1) != as.integer(plate.2)) %>%
+      select(-plate.1, -plate.2)
+  }
   
+
   # now, because the apply function returns a matrix, we have to coerce all these
   # things back to numeric or factors with correct levels.  We might be able to 
   # avoid this if we adply-ed rather than apply-ed.  But it's done and working now!
@@ -146,14 +182,15 @@ MultiChipRelativeIntensityPlot <- function (DF,
       }}
     
     # color-blind-friendly palette: http://www.cookbook-r.com/Graphs/Colors_%28ggplot2%29/
-    cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+    # though eric added some more colors to it and put black near the end cuz the black was just fugly.
+    cbPalette <- c("#CC79A7", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#999999", "#9933FF", "#33FF99")
     
     if (color.by == "new.k") {
       cbPalette[1] <- "light grey"
     }
     
     g<- g + facet_wrap(~assay.name, ncol = num.columns )+
-      theme_bw() +
+      theme_bw() + 
       scale_color_manual(values=cbPalette)
     
     ggsave(paste0(prefix,i,".pdf"),g, width = 34, height = 22)
