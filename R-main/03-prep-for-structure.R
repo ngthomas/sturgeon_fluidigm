@@ -8,8 +8,8 @@ library(stringr)
 #### Data reading and munging  ####
 
 # first, read the data in
-g <- tbl_df(read.csv(gzfile("data/new_score_allplates.csv.gz"), stringsAsFactors = FALSE))
-#g<- readRDS("outputs/genotype_from_five_chips.rds")
+#g <- tbl_df(read.csv(gzfile("data/new_score_allplates.csv.gz"), stringsAsFactors = FALSE))
+g<- readRDS("outputs/genotype_from_five_chips.rds")
 
 # now, we have an issue to deal with. Some individuals were scored on multiple
 # plates.  Here is what I propose we do:
@@ -19,12 +19,20 @@ gc <- g %>% filter(new.k > 0)
 # 2. Now count up the number of individuals typed on more than one plate at the same locus
 #    that got genotypes that are discordant
 discord <- gc %>% 
-  group_by(name, assay) %>%
+  group_by(full.name, assay.name) %>%
   summarise(num = n(), nd = n_distinct(new.k)) %>%
-  filter(num >1, nd > 1)
+  filter(num >1, nd > 1) %>%
+  ungroup
 
-# note that there are only 7 of those.  Now, we want to remove those
-# genotype calls from the data set, so:
+# count how many per individaul that is:
+discord %>%
+  group_by(full.name) %>%
+  tally()
+
+# note that the inconsistencies are few, apart from some that are clustered
+# into some clearly lousy samples. We are going to toss out the 
+# discordant ones.  
+
 # 3. Toss out the genotype calls (at 17 indiv x locus combos) that were discordant
 gc2 <- gc %>% anti_join(discord)
 
@@ -32,13 +40,14 @@ gc2 <- gc %>% anti_join(discord)
 # now, we can summarise those multiple calls of the remaining ones by just the 
 # first genotypes (since they are all the same)
 gc3 <- gc2 %>%
-  group_by(name, assay) %>%
-  summarise(single_call = first(new.k))
+  group_by(full.name, assay.name) %>%
+  summarise(single_call = first(new.k)) %>%
+  ungroup
 
 
 # see how much missing data different individuals have
 how_many_loci_typed <- gc3 %>%
-  group_by(name) %>%
+  group_by(full.name) %>%
   tally()
 
 # and toss out indivs with fewer than 60 loci typed
@@ -49,15 +58,15 @@ gc4 <- how_many_loci_typed %>%
 
 # so, we have tossed about 44 individuals because they had too much missing data.
 # We could be less stringent in the future
-length(unique(gc3$name))
-length(unique(gc4$name))
+length(unique(gc3$full.name))
+length(unique(gc4$full.name))
 
-length(unique(gc3$name)) - length(unique(gc4$name))
+length(unique(gc3$full.name)) - length(unique(gc4$full.name))
 
 
 # now that we have the genotypes we want to use, we will need to put them into a wide-format
 # data frame.  A job for dcast...
-wide <- dcast(data = gc4, name ~ assay, value.var = "single_call")
+wide <- dcast(data = gc4, full.name ~ assay.name, value.var = "single_call")
 
 
 # set the NAs to -9s
@@ -67,7 +76,7 @@ wide[is.na(wide)] <- -9
 #### Attaching some meta data ####
 
 # we are going to want to put a PopID on here, so we need the meta data
-meta <- tbl_df(read.csv("data/meta/acipenser.mer", stringsAsFactors = FALSE))
+meta <- tbl_df(read.table("data/meta/AM001_AM006.tab", sep = "\t", header = T, stringsAsFactors = FALSE))
 
 meta2 <- meta %>% 
   select(NMFS_DNA_ID, WATERSHED, LOCATION_COMMENTS_M, SAMPLE_COMMENTS)
@@ -83,8 +92,8 @@ meta3$origin = factor(meta3$origin,
 
 meta4 <- meta3 %>% select(NMFS_DNA_ID, origin)
 
-merged <- left_join(wide, meta4, by = c("name" = "NMFS_DNA_ID")) %>%
-  select(name, origin, starts_with("ame")) %>%
+merged <- left_join(wide, meta4, by = c("full.name" = "NMFS_DNA_ID")) %>%
+  select(full.name, origin, starts_with("ame")) %>%
   tbl_df() %>%
   arrange(origin)
 
@@ -101,6 +110,10 @@ write.table(to_write, file = outf, append = TRUE, quote = FALSE, row.names = FAL
 
 
 #### Now, as long as I am at this, I should try to write to gsi_sim files ####
+
+# Since it is pretty obvious that all the fish (adults and juveniles) from the 
+# sacramento and the Klamath are from the right spot, we will include all of them 
+# into the baseline (juvies and adults)
 
 # get the locus stuff to write:
 locs <- cbind("PLOIDY 1", names(merged)[-(1:2)])

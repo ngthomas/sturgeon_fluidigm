@@ -8,6 +8,14 @@ library(grid)
 
 source("R/chip_scoring_functions.R")
 
+
+#### Step 1: Read in the data for the four "training" plates and plate 5 of more indivs ####
+
+data.K <- readRDS(file = "outputs/genotype_from_five_chips.rds")
+
+
+#### Step 2: Regional Assignment
+
 # Meta-value: regional labels
 # regional_5.tbl is a combination of regional.tbl and fifth plates sample info drawn from xls file
 # (AM006_ST001.xld)
@@ -15,32 +23,6 @@ region.FILE=read.csv("data/assess_5thChip_rr/annotate/regional_5.tbl", stringsAs
 colnames(region.FILE) <- c("full.name", "region")
 
 
-#### Step 1: Read in the data for the four "training" plates and plate 5 of more indivs ####
-
-# Read in the scored raw intensity data for the four "training" plates
-scored_training_plates <- read.csv("data/training_chips/training_chips_scored.csv", stringsAsFactors = FALSE, row.names = 1) %>%
-  tbl_df
-
-# read in raw intensity data for plate 5
-plate5 <- read_fluidigm_detailed_csv("data/more_chips/1382136064_scored.csv") %>%
-  mutate(plate = 5, long_plate_name = 1382136064)
-
-# combine those
-sturgeon.file <- bind_rows(scored_training_plates, plate5)
-
-
-
-#### Step 2: Regional Assignment
-
-data.reorg <- ReOrganizeFile(sturgeon.file)
-
-# reassign K value: the number of cluster due to limitations of fluidigm' scoring capability
-data.K <- data.reorg %>%
-group_by(assay, plate) %>%
-mutate(new.k = SpanningK(k, rel.dye1, rel.dye2)) %>%
-ungroup() %>%
-group_by(assay) %>%
-mutate(total.k = max(new.k))
 
 # merging the scoring file with the regional files
 make_region_unk <- function(region,plate) {ifelse(is.na(region),paste0("unk_", plate),region)}
@@ -156,7 +138,3 @@ ggsave2 <- ggplot2::ggsave; body(ggsave2) <- body(ggplot2::ggsave)[-2]
 ggsave2("outputs/DPS-prediction.pdf", height=17, width=20)
 
 
-## pass genotype df to step 03
-saveRDS(data.reduce,
-        file="outputs/genotype_from_five_chips.rds",
-        compress = "xz")

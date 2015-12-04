@@ -99,6 +99,15 @@
 \cfoot[]{}
 
 
+%%%%%%%% KNITR BLOCK
+% Here is a knitr chunk to set global values
+<<setup, include=FALSE, cache=FALSE>>=
+#library(knitr)
+# set global chunk options
+knitr::opts_chunk$set(include=FALSE, cache=TRUE)
+knitr::opts_knit$set(self.contained=FALSE, root.dir = "../")
+@
+
 
 \begin{document}
 
@@ -119,12 +128,17 @@
     {\small \myEmailFootnote Correspondence: \myEmailAddress}
     
    \begin{abstract}
-   	\input{abstract}    %% Put abstract text in here
+   	\input{abstract.Rnw}     %% Put abstract text in here.  If we want to include R code in it we will have to
+                             %% use Sexpr{knit_child("doc.Rnw")} instead of \input{abstract.Rnw}.  But using \input gives us good
+                             %% syncing
     \end{abstract}
    \end{strip}
 
 {\small
-\input{main-body-text}
+% here, input the main body text part.
+%<<main-body-insert, child='main-body-text.Rnw'>>=
+%@
+	\input{main-body-text.Rnw}
 }
 
 \bibliographystyle{men}
