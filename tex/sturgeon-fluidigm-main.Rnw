@@ -117,7 +117,10 @@ knitr::opts_knit$set(concordance = TRUE)
 % a knitr chunk to evaluate the code needed to produce variables and figures we need
 % in this section
 <<meta-data-summarise, include=FALSE, cache = FALSE>>=
+ReDoStructureRuns = FALSE
+
 source("R-main/00-meta-data-summaries.R")
+source("R-main/03-prep-for-structure.R")
 @
 
 
@@ -353,7 +356,9 @@ is recorded as having missing data at the locus.}
 \label{fig:plate_xy}
 \end{figure*}
 
+\subsection{Population structure}
 
+ReDoStructureRuns = FALSE
 
 \section*{Results}
 
