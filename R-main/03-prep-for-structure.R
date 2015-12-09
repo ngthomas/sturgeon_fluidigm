@@ -50,67 +50,117 @@ how_many_loci_typed <- gc3 %>%
   group_by(full.name) %>%
   tally()
 
-# and toss out indivs with fewer than 60 loci typed
-gc4 <- how_many_loci_typed %>%
-  filter(n < 60) %>%
-  anti_join(gc3, .)
-
-
-# so, we have tossed about 44 individuals because they had too much missing data.
-# We could be less stringent in the future
-length(unique(gc3$full.name))
-length(unique(gc4$full.name))
-
-length(unique(gc3$full.name)) - length(unique(gc4$full.name))
-
-
 # now that we have the genotypes we want to use, we will need to put them into a wide-format
 # data frame.  A job for dcast...
-wide <- dcast(data = gc4, full.name ~ assay.name, value.var = "single_call")
+wide <- dcast(data = gc3, full.name ~ assay.name, value.var = "single_call")
 
 
-# set the NAs to -9s
-wide[is.na(wide)] <- -9
+# set the NAs to 0s
+wide[is.na(wide)] <- 0
 
 
 #### Attaching some meta data ####
 
-# we are going to want to put a PopID on here, so we need the meta data
-meta <- tbl_df(read.table("data/meta/AM001_AM006.tab", sep = "\t", header = T, stringsAsFactors = FALSE))
+# we are going to want to put short labels on there, and some pop columns, sorted the way
+# we want. So lets do that.
+needed_ids <- read.csv("data/meta/sample_sheet.csv", stringsAsFactors = FALSE) %>%
+  tbl_df %>%
+  mutate(group_name = factor(group_name, levels = c("reSac", "rjSac", "rnSac", "rjKla", "nnEel", "nnByc"))) %>%
+  arrange(group_name, pipe_name) %>%
+  mutate(gn1 = as.integer(group_name),
+         gn2 = as.integer(group_name),
+         full.name = NMFS_DNA_ID) %>%
+  select(full.name, pipe_name, group_name, gn1, gn2) 
 
-meta2 <- meta %>% 
-  select(NMFS_DNA_ID, WATERSHED, LOCATION_COMMENTS_M, SAMPLE_COMMENTS)
 
-meta3 <- meta2 %>% mutate(origin = paste(WATERSHED, LOCATION_COMMENTS_M, sep = ""))
-meta3$origin[meta3$origin == ""] <- "Unknown Origin"
-meta3$origin = factor(meta3$origin,
-                      levels = c("Sacramento River",
-                                 "Klamath River",
-                                 "Groundfish fishery",
-                                 "Unknown Origin",
-                                 "Mystery"))
+# and left join them on there
+AllOfEm <- left_join(needed_ids, wide)
 
-meta4 <- meta3 %>% select(NMFS_DNA_ID, origin)
 
-merged <- left_join(wide, meta4, by = c("full.name" = "NMFS_DNA_ID")) %>%
-  select(full.name, origin, starts_with("ame")) %>%
-  tbl_df() %>%
-  arrange(origin)
+# then toss the ones with too much missing data
+NoHiMissers <- how_many_loci_typed %>%
+  filter(n < 60) %>%
+  anti_join(AllOfEm, .)
 
-# now, some of the fish in wide weren't in the meta data file...call them Mystery
-merged$origin[is.na(merged$origin)] <- "Mystery"
+# then toss one more that had some NAs and sort them correctly and tweeze off uneeded columns
+NoHiMissers2 <- NoHiMissers[complete.cases(NoHiMissers), ] %>%
+  arrange(gn1, pipe_name) %>%
+  select(-full.name, -group_name)
 
-#### Then write that out into a structure file ####
-to_write <- merged
-to_write$origin <- as.integer(to_write$origin)
 
-outf <- "struct_input.txt"
-cat(names(to_write)[-(1:2)], "\n", file = outf)
-write.table(to_write, file = outf, append = TRUE, quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " ")
 
+if(!file.exists("StructureArea/data")) create.dir("StructureArea/data")
+if(!file.exists("StructureArea/input")) create.dir("StructureArea/input")
+
+
+
+# now write to a file and prepare all the commands to run structure
+outf <- "StructureArea/data/genos_slg_pipe.txt_dat001"
+cat(names(NoHiMissers2)[-(1:3)], "\n", file = outf)
+write.table(NoHiMissers2, file = outf, append = TRUE, quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " ")
+
+# now write a few other funny things we need to do:
+TheN <- nrow(NoHiMissers2)
+cat(TheN, file = "StructureArea/input/N.txt", eol = "\n")
+
+TheL <- ncol(NoHiMissers2) - 3
+cat(TheL, file = "StructureArea/input/L.txt", eol = "\n")
+
+cat(outf, file = "StructureArea/input/InputFileNames.txt", eol = "\n")
+
+write.table(cbind(1:length(levels(NoHiMissers$group_name)), levels(NoHiMissers$group_name)),
+            quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " ", 
+            file = "StructureArea/data/pop_idxs.txt")
+
+write.table(cbind(1:length(levels(NoHiMissers$group_name)), levels(NoHiMissers$group_name)),
+            quote = FALSE, row.names = FALSE, col.names = FALSE, sep = " ", 
+            file = "StructureArea/clump_and_distruct/pop_names.txt")
+
+# Now the hard part, the commands
+Kvals <- 2:4
+Reps <- 3
+KvalR <- rep(Kvals, each = Reps)
+reppy <- rep(1:length(Kvals), Reps)
+set.seed(5)
+struct_seeds <- round(runif(n = length(KvalR), min = 1, max = 10^6))
+
+Comms <- paste(
+  "echo \"Starting Rep ",
+  reppy,
+  " of K = ", 
+  KvalR, 
+  " for data set genos_slg_pipe.txt_dat001 at $(date)\"; ../bin/structure  -K ",
+  KvalR, 
+  " -i ../data/genos_slg_pipe.txt_dat001  -N ",
+  TheN, 
+  " -L ",
+  TheL,
+  " -D ", 
+  struct_seeds,
+  " -o StructOuput_genos_slg_pipe.txt_dat001_k00",
+  KvalR,
+  "_Rep00",
+  reppy,
+  ".txt > StdoutStruct_genos_slg_pipe.txt_dat001_k00",
+  KvalR,
+  "_Rep00",
+  reppy,
+  ".txt;  echo \"Done with Rep ", 
+  reppy, 
+  " with K = ",
+  KvalR,
+  " for data set genos_slg_pipe.txt_dat001 at $(date)\"",
+  sep = ""
+  )
+
+cat(Comms, sep = "\n", file = "StructureArea/input/Commands.txt")
+
+
+## Now, fire that thing off, here it calls for 6 processors
+system("cd StructureArea/arena; nohup ../script/ExecuteStructureRuns.sh  6  > BIG_LOG.txt  2>&1 &")
 
 #### Now, as long as I am at this, I should try to write to gsi_sim files ####
-
+if(FALSE) {
 # Since it is pretty obvious that all the fish (adults and juveniles) from the 
 # sacramento and the Klamath are from the right spot, we will include all of them 
 # into the baseline (juvies and adults)
@@ -141,7 +191,7 @@ lapply(levels(merged$origin)[-(1:2)], function(z)
   write.table(glist[[z]][, -2], quote = FALSE, row.names = FALSE, col.names = FALSE, file = outf, append = TRUE)
 )
 
-
+}
 
 
 
