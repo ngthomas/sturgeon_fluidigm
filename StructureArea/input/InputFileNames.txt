@@ -1,0 +1,1 @@
+StructureArea/data/genos_slg_pipe.txt_dat001 
