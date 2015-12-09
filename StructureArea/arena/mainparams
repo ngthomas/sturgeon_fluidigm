@@ -17,8 +17,8 @@
 #define MISSING 0
 #define PLOIDY 1
 #define MAXPOPS 2
-#define BURNIN 500
-#define NUMREPS 2000
+#define BURNIN 5000
+#define NUMREPS 20000
 
 
 #define NOADMIX 0

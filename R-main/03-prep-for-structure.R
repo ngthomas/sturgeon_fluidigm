@@ -157,7 +157,10 @@ cat(Comms, sep = "\n", file = "StructureArea/input/Commands.txt")
 
 
 ## Now, fire that thing off, here it calls for 6 processors
-system("cd StructureArea/arena; nohup ../script/ExecuteStructureRuns.sh  6  > BIG_LOG.txt  2>&1 &")
+if(ReDoStructureRuns == TRUE) {
+  system("cd StructureArea/arena;  ../script/ExecuteStructureRuns.sh  6  > BIG_LOG.txt  2>&1")
+  system("cd StructureArea/clump_and_distruct; ./script/ClumpAndDistructAll.sh 6 ")
+}
 
 #### Now, as long as I am at this, I should try to write to gsi_sim files ####
 if(FALSE) {

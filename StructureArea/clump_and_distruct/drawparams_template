@@ -30,7 +30,7 @@ Main usage options
 
 Figure appearance
 
-#define FONTHEIGHT 3.3	// (d) size of font
+#define FONTHEIGHT 6.3	// (d) size of font
 #define DIST_ABOVE 4	// (d) distance above plot to place text
 #define DIST_BELOW -7	// (d) distance below plot to place text
 #define BOXHEIGHT  15	// (d) height of the figure

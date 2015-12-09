@@ -316,7 +316,7 @@ chip-to-chip variation (Table~\ref{tab:devo-samps}).
 \end{tabular}
 \end{center}
 \mbox{}\\
-(b) Number of samples shared between plates
+(b) Number of samples shared between chips
 \begin{center}
 \begin{tabular}{lrrrr}
 \input{../outputs/cross_chip_shared_samples.tex}
@@ -353,6 +353,16 @@ is recorded as having missing data at the locus.}
 \label{fig:plate_xy}
 \end{figure*}
 
+
+
+\section*{Results}
+
+\begin{figure*}
+\includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_TopLabel_k002r001.pdf}~\raisebox{0.96ex}{$K = 2$} \\
+\includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_NoLabel_k003r001.pdf}~\raisebox{0.96ex}{$K = 3$} \\
+\includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_NoLabel_k004r001.pdf}~\raisebox{0.96ex}{$K = 4$}
+\caption{Representative {\em distruct} plots of {\em structure} estimates of ancestry proportions for XXX individuals. Sampling location codes in Table~\ref{tab:samps}.}
+\end{figure*}
 
 at a SNP are are called by Resultant raw fluorescence data from samples of known origin were submitted to FitTetra package for R \citep{voorrips2011genotype}, which fits mixture models to call tetraploid loci, allowing us to call genotypes in 49 of the 96 loci. Of these 49 loci, 29 had genetic differentiation greater than 1\% between known samples from the Northern and Southern DPS as measured by the GST statistic in Genodive v2.0b25 \citep{meirmans2004genotype}. We then manually curated the genotype data, selecting 12 loci for use in Genetic Stock Identification based on their relative ease of scoring. Genotypes for these 12 loci from 21 Northern DPS and 39 Southern DPS individuals comprise the genetic baseline of known samples that we used in subsequent GSI analyses of bycatch. Raw fluorescence data from 152 bycatch samples were then scored using the mixture discriminant analysis function in the mda package for R \citep{hastie1996discriminant}, followed by manual curation. Genotype data from each of two sets of bycatch samples were submitted as separate fisheries mixtures to gsisim \citep{Andersonetal2008} for population assignment against the genetic baseline.
 
