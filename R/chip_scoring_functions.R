@@ -84,7 +84,10 @@ MultiChipRelativeIntensityPlot <- function (DF,
                                             self.exclude = FALSE,
                                             color.by = "plate",
                                             exclude.seg = FALSE,
-                                            alreadyOrganized = FALSE) {
+                                            alreadyOrganized = FALSE,
+                                            label_with_num_clusts = FALSE,
+                                            lineSegAlpha = 1.0,
+                                            returnPlot = FALSE) {
   
   if (!alreadyOrganized) {
     DF <- ReOrganizeFile(DF) }
@@ -161,7 +164,7 @@ MultiChipRelativeIntensityPlot <- function (DF,
 
     g <- g + geom_point(alpha=0.7)
     
-    if (color.by == "new.k") {
+    if (color.by == "new.k" || label_with_num_clusts == TRUE) {
       g <- g + geom_text(aes(label=total.k, x=1, y=1), color="black")
     }
     
@@ -178,7 +181,8 @@ MultiChipRelativeIntensityPlot <- function (DF,
                                  xend=x.end, 
                                  yend=y.end, 
                                  color=plate.pair),
-                             linetype=5)
+                             linetype=5,
+                             alpha = lineSegAlpha)
       }}
     
     # color-blind-friendly palette: http://www.cookbook-r.com/Graphs/Colors_%28ggplot2%29/
@@ -195,6 +199,8 @@ MultiChipRelativeIntensityPlot <- function (DF,
     
     ggsave(paste0(prefix,i,".pdf"),g, width = 34, height = 22)
   }
+  
+  if(returnPlot == TRUE) return(g)
 }
 
 
