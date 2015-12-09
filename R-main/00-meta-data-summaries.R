@@ -1,4 +1,7 @@
 library(dplyr)
+library(stringr)
+
+if(!file.exists("outputs")) dir.create("outputs")
 
 # read in the full repository information:
 repo <- tbl_df(read.table("data/meta/AM001_AM006.tab", sep = "\t", header = T, stringsAsFactors = FALSE))
@@ -8,7 +11,6 @@ bycid <- readRDS("data/meta/bycatch_IDS.rds")
 
 # read in the sheet of data about the samples we are using
 samsheet <- read.csv("data/meta/sample_sheet.csv", stringsAsFactors = FALSE)
-
 
 # so, in the future, we can left_join on samsheet to get a consistent set of 
 # individuals to use.
@@ -27,6 +29,7 @@ if(FALSE) {  # this doesn't typically get re-run because I made the file to use 
       collection_location = ifelse(NMFS_DNA_ID %in% bycid$NMFS_DNA_ID, "Bycatch", WATERSHED)
       ) %>% 
     select(NMFS_DNA_ID, category, life_stage, collection_location) %>%
+    mutate(life_stage = ifelse(collection_location == "Klamath River", "juvenile", life_stage)) %>% # note that the klamath are all juvenile, but not recorded in meta data
     mutate(group_name = paste(
       str_sub(category, 1, 1), 
       str_sub(life_stage, 1, 1), 
@@ -34,6 +37,8 @@ if(FALSE) {  # this doesn't typically get re-run because I made the file to use 
       sep = ""
       )) %>%
     mutate(pipe_name = paste(group_name, str_sub(NMFS_DNA_ID, 6, 8), sep = ""))
+  
+
   
   # write that out 
   write.csv(sams, file = "data/meta/sample_sheet.csv")
@@ -71,9 +76,9 @@ write.table(tmp, sep = " & ", eol = "\\\\\n",
 stab <- samsheet %>%
   mutate(category = factor(category, levels = rev(unique(category)))) %>%
   mutate(collection_location = factor(collection_location, levels = rev(sort(unique(collection_location))))) %>%
-  group_by(category, life_stage, collection_location, group_name) %>%
+  group_by(collection_location, category, life_stage, group_name) %>%
   tally() %>%
-  setNames(c("Category", "Life Stage", "Location", "Group Short Name", "n"))
+  setNames(c("Location", "Category", "Life Stage", "Group Short Name", "n"))
 
 
 outf <- "outputs/sample_summary.tex"
