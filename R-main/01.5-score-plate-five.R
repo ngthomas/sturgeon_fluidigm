@@ -3,6 +3,7 @@ library(plyr)
 library(dplyr)
 library(stringr)
 source("R/chip_scoring_functions.R")
+source("R/analysis_funcs.R")
 
 
 
@@ -55,7 +56,15 @@ Dat.K <- Dat.reorg %>%
   mutate(new.k = SpanningK(k, rel.dye1, rel.dye2)) %>%
   ungroup() %>%
   group_by(assay) %>%
-  mutate(total.k = max(new.k))
+  mutate(total.k = max(new.k)) %>%
+  ungroup
 
 
-saveRDS(ungroup(Dat.K), file = "outputs/genotype_from_five_chips.rds", compress = "xz")
+saveRDS(Dat.K, file = "outputs/genotype_from_five_chips.rds", compress = "xz")
+
+
+#### Count up  discordant pairs ##### This is not completed yet, but the function works nicely.
+
+count_discordant_genotype_cats(Dat.K)
+
+# now, I really need to see how things change when we toss individuals that are missing more than 10 genotype calls.
