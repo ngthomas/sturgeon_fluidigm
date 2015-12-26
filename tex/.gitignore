@@ -13,3 +13,7 @@ sturgeon-fluidigm-main.pdf
 *.fls
 .DS_Store
 
+cache
+knitr.sty
+sturgeon-fluidigm-main-concordance.tex
+sturgeon-fluidigm-main.tex

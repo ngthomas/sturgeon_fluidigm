@@ -6,6 +6,8 @@ outputs
 stuff_from_crandall
 data/meta/private.xls
 
-
+.DS_Store
 
 StructureArea
+
+*.Rapp.history
