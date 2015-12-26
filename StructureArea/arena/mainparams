@@ -21,7 +21,7 @@
 #define NUMREPS 20000
 
 
-#define NOADMIX 0
+#define NOADMIX 1
 #define LINKAGE 0
 #define USEPOPINFO 0
 
