@@ -1,5 +1,5 @@
-library(dplyr)
-library(stringr)
+source("R/load-packages.R")
+
 
 if(!file.exists("outputs")) dir.create("outputs")
 

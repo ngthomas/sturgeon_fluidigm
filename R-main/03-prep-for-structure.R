@@ -1,9 +1,7 @@
+
+
 ####  Prepare scored sturgeon genotypes for a structure run or two ####
-
-library(dplyr)
-library(reshape2)
-library(stringr)
-
+source("R/load-packages.R")
 
 #### Data reading and munging  ####
 
@@ -79,7 +77,7 @@ AllOfEm <- left_join(needed_ids, wide)
 
 # then toss the ones with too much missing data.  Currently that means >= 40 markers
 NoHiMissers <- how_many_loci_typed %>%
-  filter(n < 40) %>%
+  filter(n < 60) %>%
   anti_join(AllOfEm, .)
 
 # then toss one more that had some NAs and sort them correctly and tweeze off uneeded columns
@@ -102,6 +100,7 @@ write.table(NoHiMissers2, file = outf, append = TRUE, quote = FALSE, row.names =
 # now write a few other funny things we need to do:
 TheN <- nrow(NoHiMissers2)
 cat(TheN, file = "StructureArea/input/N.txt", eol = "\n")
+N_for_structure <- TheN
 
 TheL <- ncol(NoHiMissers2) - 3
 cat(TheL, file = "StructureArea/input/L.txt", eol = "\n")

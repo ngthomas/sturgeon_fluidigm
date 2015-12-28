@@ -1,7 +1,4 @@
-library(ggplot2)
-library(plyr)
-library(dplyr)
-library(stringr)
+source("R/load-packages.R")
 source("R/chip_scoring_functions.R")
 source("R/analysis_funcs.R")
 

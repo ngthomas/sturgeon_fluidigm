@@ -1,5 +1,3 @@
-library(lazyeval)
-
 #' count up the number of pairs of discordant genotype category calls per locus
 #' 
 #' This takes as input a data frame that has, minimally, columns of 

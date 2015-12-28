@@ -1,7 +1,4 @@
-library(plyr)
-library(dplyr)
-library(ggplot2)
-
+source("R/load-packages.R")
 source("R/chip_scoring_functions.R")
 
 
@@ -212,8 +209,8 @@ MultiChipRelativeIntensityPlot(data.K,
 
 
 # and then make them for each plate separately
-for(i in unique(data.K2$plate.name)) {
-  tmp <- data.K2 %>% filter(plate.name == i)
+for(i in unique(data.K$plate.name)) {
+  tmp <- data.K %>% filter(plate.name == i)
   MultiChipRelativeIntensityPlot(tmp, 
                                  color.by = "new.k", 
                                  alreadyOrganized = TRUE, 

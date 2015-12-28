@@ -1,7 +1,3 @@
-require(plyr)
-require(dplyr)
-require(ggplot2)
-library(RColorBrewer)
 
 
 #### HELPER FUNCTIONS ####
@@ -108,7 +104,7 @@ MultiChipRelativeIntensityPlot <- function (DF,
   # that represent re-genotyped individuals' values on the final plot
   list.seg<-ddply(repeat.data, .(assay.name, name), function(x) {
     num.rep <- dim(x)[1]
-    all.combn <- combn(1:num.rep, 2)  
+    all.combn <- utils::combn(1:num.rep, 2)  
     seg.pt <- t(apply(all.combn, 2, function(i) {
       c(as.numeric(x$rel.dye1[i[1]]), 
         x$rel.dye2[i[1]],

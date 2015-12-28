@@ -6,7 +6,7 @@
 # of successfully genotyped ones, and also maybe do a few different
 # genotyping eror rate values
 
-library(Rrunstruct)
+source("R/load-packages.R")
 source("R/self-id.R")
 
 #### Get allele frequencies ####
@@ -27,7 +27,7 @@ dps_df <- so %>%
 
 
 # now, we stick DPS designations onto the genotype categories and count the up
-geno <- readRDS("outputs/new-genotype_from_five_chips.rds")
+geno <- readRDS("outputs/genotype_from_five_chips.rds")
 
 # first filter to just the individuals 
 tmp_counts <- geno %>%
@@ -281,6 +281,11 @@ greensmear <- apairs2 %>%
   filter(pairtype == "NKS", LLR < 0)
 the_rest <- apairs2 %>%
   filter(!(pairtype == "NKS" & LLR < 0))
+the_num_pairs <- apairs2 %>%
+  group_by(DPS, pairtype) %>%
+  tally %>%
+  ungroup %>%
+  mutate(pretty_nums = formatC(n, big.mark = ","))
 
 set.seed(5)
 g <- ggplot(greensmear, aes(x = LLR, y = pairtype, colour = pairtype)) + 
@@ -290,6 +295,8 @@ g <- ggplot(greensmear, aes(x = LLR, y = pairtype, colour = pairtype)) +
   xlab("Log likelihood ratio statistic") +
   ylab("Pairtype") +
   scale_color_discrete(name = "Pairtype") +
+  geom_text(data = the_num_pairs, mapping = aes(label = pretty_nums), 
+            x = -95, colour = "black", hjust = 1, size = 3.3) +
   facet_wrap(~ DPS, ncol = 1) +
   xlim(-100, 70)
 
