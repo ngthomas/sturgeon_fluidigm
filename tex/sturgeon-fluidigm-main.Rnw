@@ -450,6 +450,15 @@ where $\delta(g = h)$ is 1 when $g=h$ and 0 otherwise.  This can be written more
 
 \section*{Results}
 
+\begin{figure}
+\begin{center}
+\includegraphics[width = \linewidth]{../outputs/successful-assay-histogram-crop.pdf}
+\end{center}
+\caption{\footnotesize Number of assays successfully scored per individual.  The histogram shows the number of individuals
+successfully scored for $0,\ldots, 74$ assays, on each of the chips.  Color denotes type of sample, Group Short
+Names as in Table~\ref{tab:samps}}
+\end{figure}
+
 \begin{figure*}
 \includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_TopLabel_k002r001.pdf}~\raisebox{0.96ex}{$K = 2$} \\
 \includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_NoLabel_k003r001.pdf}~\raisebox{0.96ex}{$K = 3$} \\

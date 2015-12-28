@@ -63,8 +63,56 @@ Dat.K <- Dat.reorg %>%
 saveRDS(Dat.K, file = "outputs/genotype_from_five_chips.rds", compress = "xz")
 
 
+#### Count up and plot the number of loci typed per sample ####
+# we want a histogram of the number of samples typed at 0,...,74 SNPs
+# faceted by plate.  And we also want to color the bars by short sample prefix
+
+# so, first, get the sample prefixes
+sams <- read.csv("data/meta/sample_sheet.csv", stringsAsFactors = FALSE) %>% 
+  tbl_df %>%
+  rename(full.name = NMFS_DNA_ID) %>%
+  select(full.name, group_name) 
+
+sams$group_name <- factor(sams$group_name, levels = c("reSac", "rjSac", "rnSac",  "rjKla", "nnEel",  "nnByc"))
+
+tmp <- Dat.K %>%
+  filter(total.k > 0) %>%
+  left_join(sams) %>%
+  rename(Chip = plate) %>%
+  group_by(Chip, full.name, group_name) %>%
+  summarise(`Number of assays with called genotype categories` = sum(new.k != 0))
+
+# and now we have to get the group of the duplicate samples.  Hassle...
+byctmp <- readRDS("data/meta/bycatch_IDS.rds") %>%
+  filter(!is.na(Duplicate_Tissue)) %>%
+  rename(full.name = NMFS_DNA_ID) %>%
+  left_join(sams)
+bychash <- byctmp$group_name %>% 
+  setNames(byctmp$Duplicate_Tissue)
+
+trytochange <- which(is.na(tmp$group_name))
+tmp$group_name[trytochange] <- bychash[tmp$full.name[trytochange]]
+
+# now there are only three sample with unknown group.  Let's just toss em...
+tmp <- tmp %>%
+  filter(!is.na(group_name))
+
+tmp$Chip <- paste("Chip", tmp$Chip)
+  
+g <- ggplot(tmp, aes(x = `Number of assays with called genotype categories`, fill = group_name, order = -as.numeric(group_name))) + 
+  geom_histogram(breaks = c(0:75) - 0.5) +
+  facet_wrap(~ Chip, ncol = 1) +
+  ylab("Number of samples") +
+  scale_fill_discrete(name="Group\nShort\nName") +
+  theme_bw()
+
+ggsave(g, filename = "outputs/successful-assay-histogram.pdf", width = 6, height = 6)
+
+system("pdfcrop outputs/successful-assay-histogram.pdf")
 #### Count up  discordant pairs ##### This is not completed yet, but the function works nicely.
 
-count_discordant_genotype_cats(Dat.K)
+boing <- count_discordant_genotype_cats(Dat.K)
 
 # now, I really need to see how things change when we toss individuals that are missing more than 10 genotype calls.
+
+
