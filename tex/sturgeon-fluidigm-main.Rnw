@@ -454,8 +454,8 @@ where $\delta(g = h)$ is 1 when $g=h$ and 0 otherwise.  This can be written more
 \begin{center}
 \includegraphics[width = \linewidth]{../outputs/successful-assay-histogram-crop.pdf}
 \end{center}
-\caption{\footnotesize Number of assays successfully scored per individual.  The histogram shows the number of individuals
-successfully scored for $0,\ldots, 74$ assays, on each of the chips.  Color denotes type of sample, Group Short
+\caption{\footnotesize Histogram showing the number of individuals
+successfully scored for $0,\ldots, 74$ assays, on each of the chips.  Color denotes type of sample; Group Short
 Names as in Table~\ref{tab:samps}}
 \end{figure}
 
@@ -463,12 +463,23 @@ Names as in Table~\ref{tab:samps}}
 \includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_TopLabel_k002r001.pdf}~\raisebox{0.96ex}{$K = 2$} \\
 \includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_NoLabel_k003r001.pdf}~\raisebox{0.96ex}{$K = 3$} \\
 \includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_NoLabel_k004r001.pdf}~\raisebox{0.96ex}{$K = 4$}
-\caption{Representative {\em distruct} plots of {\em structure} estimates of ancestry proportions for XXX individuals. Sampling location codes in Table~\ref{tab:samps}.}
+\caption{\footnotesize Representative {\em distruct} plots of {\em structure} estimates of ancestry proportions for \textcolor{red}{XXX individuals with $\geq 40$ loci}. Sampling location codes in Table~\ref{tab:samps}.}
 \end{figure*}
 
 
+\begin{figure*}
+{\bf (a)}\\
+\includegraphics[width = \textwidth]{../outputs/lambda_densities-crop.pdf}\\
+{\bf (b)}\\
+\includegraphics[width = \textwidth]{../outputs/obs-self-id-logls-crop.pdf}
+\caption{\footnotesize Simulated and observed distribution of self-ID log likelihood ratio statistics.
+Remember to note that the simulations were done assuming a high genotyping error rate.}
+\end{figure*}
+
 \section*{Results}
 
+\textcolor{red}{Note, there seems to be a clear error in the duplicate samples page in the spreadsheet.  Namely, AM000120 and AM000149 are clearly the same fish as are AM000131 and AM000137, but the sample sheet has that AM000120 and AM000131 are the
+same and that AM000137 and AM000149 are the same.}
 \section*{Discussion}
 
 \section*{Acknowledgments}

@@ -77,9 +77,9 @@ needed_ids <- read.csv("data/meta/sample_sheet.csv", stringsAsFactors = FALSE) %
 AllOfEm <- left_join(needed_ids, wide)
 
 
-# then toss the ones with too much missing data
+# then toss the ones with too much missing data.  Currently that means >= 40 markers
 NoHiMissers <- how_many_loci_typed %>%
-  filter(n < 60) %>%
+  filter(n < 40) %>%
   anti_join(AllOfEm, .)
 
 # then toss one more that had some NAs and sort them correctly and tweeze off uneeded columns

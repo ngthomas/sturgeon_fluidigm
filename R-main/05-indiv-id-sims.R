@@ -115,9 +115,18 @@ sims_df <- bind_rows(
   tidyr::gather(key = "Relat", value = logl, S, U)
 
 
-ggplot(sims_df %>% filter(L %in% c(74, 60, 50, 40)), aes(x = logl, fill = factor(L))) + 
-         geom_density(alpha = 0.2) +
-         facet_wrap(~ DPS, nrow = 2)
+g <- ggplot(sims_df %>% filter(L %in% c(74, 60, 50, 40)), aes(x = logl, fill = factor(L))) + 
+  geom_density(alpha = 0.2) +
+  facet_wrap(~ DPS, nrow = 2) +
+  scale_fill_discrete(name = "Number\nof loci\ntyped in\nboth\nmembers\nof the\npair") +
+  xlab("Log likelihood ratio statistic") +
+  theme_bw() +
+  xlim(-100, 70)
+
+
+ggsave(g, filename = "outputs/lambda_densities.pdf", width = 10, height = 3)
+
+system("pdfcrop outputs/lambda_densities.pdf")
 
 # So, it seems clear to me that there should be a number for the logl threshold which is like
 # 10.0, which will toss out all non-related indivs and have a super low false negative rate
@@ -128,10 +137,29 @@ ggplot(sims_df %>% filter(L %in% c(74, 60, 50, 40)), aes(x = logl, fill = factor
 
 #### Doing the pairwise comparisons  ####
 
+# now, we need to augment out dps_df data frame to include the North or South origin
+# of the bycatch samples that were duplicately sampled because we are going to define
+# pairs as follows:
+# 1. Same NMFS_DNA_ID --- i.e. multiply-genotyped DNA (MGD)
+# 2. Same individual but different tissue   (SIDT)
+# 3. Not known to be the same  (NKS)
+# once again this is going to involve dealing with the dupie-tissues
+dupies <- readRDS("data/meta/bycatch_IDS.rds") %>%
+  tbl_df %>%
+  filter(!is.na(Duplicate_Tissue))
+
+dps_df_augmented <- dupies %>%
+  left_join(., dps_df, by = c("NMFS_DNA_ID" = "full.name")) %>%
+  rename(full.name = Duplicate_Tissue) %>%
+  select(-NMFS_DNA_ID) %>%
+  bind_rows(., dps_df)
+  
+  
+
 # here are the genotypes that include all the different times they were genotyped
 mgeno <- readRDS("outputs/genotype_from_five_chips.rds") %>%
   filter(total.k > 0) %>%
-  left_join(dps_df) %>%
+  left_join(dps_df_augmented) %>%
   filter(!is.na(DPS)) %>%
   droplevels
 
@@ -223,4 +251,49 @@ sp_df <- data.frame(
   select(name1:chip2, LLR, NumL)
 
 
+
+
+# now, put those into one big tidy data frame
+# and only look at those pairs with >=40 loci in common
+allpairs <- bind_rows(
+  sp_df %>% mutate(DPS = "South"),
+  np_df %>% mutate(DPS = "North")
+) %>%
+  filter(NumL >= 40)
+
+
+
+apairs2 <- allpairs %>% 
+  left_join(., dupies, by = c("name1" = "NMFS_DNA_ID")) %>%
+  left_join(., dupies, by = c("name2" = "NMFS_DNA_ID")) %>%
+  mutate(pairtype = ifelse(
+    name1 == name2, "MGD", ifelse(
+      (!is.na(Duplicate_Tissue.x) & name2 == Duplicate_Tissue.x) | (!is.na(Duplicate_Tissue.y) & name1 == Duplicate_Tissue.y)    ,  "SIDT", "NKS"))
+  )
+
+
+# here, note that AM000120      AM000149  AM000131           AM000137   and bolluxed up.  
+apairs2 %>% filter(LLR > 0, name1 != name2) %>% as.data.frame()
+
+
+
+greensmear <- apairs2 %>% 
+  filter(pairtype == "NKS", LLR < 0)
+the_rest <- apairs2 %>%
+  filter(!(pairtype == "NKS" & LLR < 0))
+
+set.seed(5)
+g <- ggplot(greensmear, aes(x = LLR, y = pairtype, colour = pairtype)) + 
+  geom_point(position = position_jitter(width = 0, height = 0.3), alpha = 0.1) +
+  geom_point(data = the_rest, position = position_jitter(width = 0, height = 0.3), alpha = 1.0) +
+  theme_bw() +
+  xlab("Log likelihood ratio statistic") +
+  ylab("Pairtype") +
+  scale_color_discrete(name = "Pairtype") +
+  facet_wrap(~ DPS, ncol = 1) +
+  xlim(-100, 70)
+
+ggsave(g, filename = "outputs/obs-self-id-logls.pdf", width = 10, height = 3)
+
+system("pdfcrop outputs/obs-self-id-logls.pdf")
 
