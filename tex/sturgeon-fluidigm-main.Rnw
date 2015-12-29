@@ -444,9 +444,11 @@ it is often called in fisheries, ``genetic stock identification'' (GSI), can be 
 our definition of genotype categories, under
 a haploid model.  The model underlying GSI is nearly identical to the {\em structure} model described above,
 except that {\em structure} assumes that the proportion of individuals from each component is
-equal, while in GSI that proportion is estimated.  We used the egg/juvenile reference samples from the Sacramento and Klamath
-rivers, as our "baseline" samples from the Southern and Northern DPSs, respectively.
-We then performed GSI on the remaining samples, using the program {\em gsi\_sim}
+equal, while in GSI that proportion is estimated.  We used the egg/juvenile and adult reference samples from the Sacramento River
+and the juvenile reference samples from the Klamath River, as our "baseline" samples from the Southern and Northern DPSs, respectively.
+We assessed how well this baseline allowed self-assignment of the baseline samples using a leave-one-out procedure, and then
+we then performed GSI on the remaining samples (bycatch samples and Eel River sample), using the
+expectation-maximization algorithm implemented in the program {\em gsi\_sim}
 \citep{Andersonetal2008,Israeletal2009},
 obtaining for each fish a posterior probability that it belongs to the Southern or Northern DPS.
 
@@ -563,6 +565,24 @@ are from both the Northern and Southern DPSs, with a greater proportion from the
 fish sampled from the Eel River belong to the Northern DPS.
 
 \subsection*{Population assignment with {\em gsi\_sim}}
+For performing GSI, we did not filter the data to remove individuals with many missing loci. The baseline sample from the Sacramento River consisted of \Sexpr{nrow(SouthBase)} individuals, many of which were egg samples that did not genotype well.  The baseline sample from the
+Klamath included \Sexpr{nrow(NorthBase)} fish.  Consistent with the {\em structure} results, self-assignment of fish in the baseline was very
+accurate.  All of the fish from the Klamath were self-assigned to the Northern DPS with all posterior probabilities $>0.9998$.  Likewise,
+all the Sacramento fish in the baseline were self-assigned to the Southern DPS except a single fish that was typed at only 4 loci.  All of the
+fish in the bycatch were assigned to the Northern or Southern DPS with posterior probabilities $>0.999$. The poor genotyping performance
+of the egg samples from the Sacramento River allowed us to investigate the effect of the number of genotypes scored and the confidence 
+in assignments (Fig.~\ref{fig:sacto-self-ass}).  
+\begin{figure}
+\includegraphics[width = \linewidth]{../outputs/self-ass-plot-crop.pdf}
+\caption{Relationship between number of loci score and the posterior probabilities of self-assignments 
+(using a leave-one-out procedure) of Sacramento River fish and eggs to
+the Southern DPS.  It is remarkable that the assignments are all correct apart from one fish with only 4 
+loci scored.  \label{fig:sacto-self-ass}}
+\end{figure}
+This reveals that, remarkably, a correct assignment can be made to DPS with high confidence
+even if as few as 10 SNPs were successfully scored, suggesting that our SNP markers will be useful even for inference from low quality or degraded tissues.
+
+
 
 
 \subsection*{Individual identification}
@@ -598,17 +618,25 @@ samples from the same individual (Fig.~\ref{fig:self-id}{\em b})
 
 
 
-\textcolor{red}{Note, there seems to be a clear error in the duplicate samples page in the spreadsheet.  Namely, AM000120 and AM000149 are clearly the same fish as are AM000131 and AM000137, but the sample sheet has that AM000120 and AM000131 are the
-same and that AM000137 and AM000149 are the same.}
+\textcolor{red}{Note, there seems to be an error in the duplicate samples page in the spreadsheet.  Namely, AM000120 and AM000149 are
+clearly (from their genetic data) the same fish as are AM000131 and AM000137, but the sample information in the
+spreadsheet says that AM000120 and AM000131 are two tissues samples from the same fish, 
+and that AM000137 and AM000149 are the same.  There must have been a small mixup somewhere either
+in the Region's handling of the data or ours in the lab.}
 
 
 \section*{Discussion}
-We are pleased to report that our panel of 74 \snptype{} assays for green sturgeon are a cost effective
+We are pleased to report that our panel of 74 \snptype{} assays for green sturgeon provides a cost-effective
 and reliable method for identifying green sturgeon from the two DPSs on the West Coast.  These SNPs provide
 substantially better resolution than panels of microsatellites that have been used previously \citep{Israeletal2009}
 and are considerably less expensive and less labor intensive to genotype and score.  Additionally, they provide
 a means to unambiguously identify individuals that have been sampled more than once.  This may prove useful for
 the study of ocean-caught green sturgeon.
+
+We have not analyzed the occurrence of fish from the different DPS in different fisheries
+as the confidentiality concerns of the bycatch data currently preclude that.  We will, however,
+provide the assignments to DPS of each bycaught individual to The Region.
+
 
 
 

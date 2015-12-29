@@ -228,11 +228,34 @@ write.table(GSI_mix, quote = FALSE, row.names = FALSE, col.names = FALSE, file =
 
 # now, fire off some gsi_sim analyses
 # here, analyze the mixture sample
-system("cd outputs; ../bin/gsi_sim-Darwin -b gs_baseline.txt -t gs_mixure.txt")
+system("cd outputs; ../bin/gsi_sim-Darwin -b gs_baseline.txt -t gs_mixure.txt > gsi_dumpola.txt")
 
 # here, do self-assignment, and process the output
 system("cd outputs; ../bin/gsi_sim-Darwin -b gs_baseline.txt --self-assign | awk -F\";\" 'BEGIN {print \"FromPop  SouthScore NorthScore NumL\"} /^UNSORTED_SELF_ASS_LIKE_GC_CSV/ {print $1, $3, $6, $(10)}' | sed 's/UNSORTED_SELF_ASS_LIKE_GC_CSV:\\///g; s/_[0-9]*//g;' > self-assigment-scores.txt")
 
 
+# read in the self-assignment
+selfies <- read.table("outputs/self-assigment-scores.txt", header = TRUE) %>%
+  tbl_df
+
+selfies %>% 
+  filter(FromPop == "Sacramento", NorthScore > 50)
+
+selfies %>%
+  filter(FromPop == "Klamath")
+
+# make a figure of self assignment scores vs Num Loci in Sacto:
+selfies_for_plot <- selfies %>%
+  filter(FromPop == "Sacramento") %>%
+  mutate(Assignment = ifelse(SouthScore > 50, "Correct", "Incorrect"))
+
+selfy_plot <- ggplot(selfies_for_plot, aes(x = NumL, y = SouthScore, colour = Assignment)) +
+  geom_point(alpha = 0.8) +
+  xlab("Number of loci scored") +
+  ylab("Posterior probability of Southern DPS") +
+  theme_bw()
 
 
+ggsave(selfy_plot, filename = "outputs/self-ass-plot.pdf", width = 6, height = 4)
+
+system("pdfcrop outputs/self-ass-plot.pdf")
