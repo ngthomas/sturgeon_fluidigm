@@ -503,7 +503,8 @@ clusters.  For the simulation of pairs and for the calculation of $P(y^{(i)}_\el
 for each simulated pair we assumed a conservatively high genotyping error rate of $\epsilon_\ell = 0.05$ for every locus.  
 $10^5$ genotype pairs were simulated both for $K_{ij} = \mathrm{S}$ and $K_{ij} = \mathrm{U}$. Simulations were first done for 
 the case in which every pair was scored at all of the SNPs developed in our
-panel, and we successively deleted loci randomly from each simulated pair to investigate the expected
+panel, and we successively deleted loci randomly, without replacement, according to locus-specific missing
+data rates, from each simulated pair to investigate the expected
 distributions when pairs shared fewer scored loci due to missing data (\ie loci that were not scored).
 We computed $\Lambda_{ij}$ for all pairs
 $ij$ of fish that were either assigned to the Northern DPS or the Southern DPS. Both the
@@ -565,18 +566,51 @@ fish sampled from the Eel River belong to the Northern DPS.
 
 
 \subsection*{Individual identification}
+The Monte Carlo simulations reveal that the the distribution of $\Lambda_{ij}$ for unrelated pairs
+is distinctly lower than it is for $K_{ij}=\mathrm{S}$.  This is true even when as many as 34 loci are
+missing in at least one of the members of the pair, leaving only 40 loci shared between the two 
+fish in the pair (Fig.~\ref{fig:self-id}{\em a}).
 \begin{figure*}
 {\bf (a)}\\
 \includegraphics[width = \textwidth]{../outputs/lambda_densities-crop.pdf}\\
 {\bf (b)}\\
 \includegraphics[width = \textwidth]{../outputs/obs-self-id-logls-crop.pdf}
-\caption{\footnotesize Simulated and observed distribution of self-ID log likelihood ratio statistics.
-Remember to note that the simulations were done assuming a high genotyping error rate.}
+\caption{\footnotesize Simulated ({\em a}) and observed ({\em b}) distributions of the log likelihood ratio 
+statistic $\Lambda_{ij}$ for identifying samples from the same individual.  ({\em a}) The density curves on the 
+left of the panel show the distribution of $\Lambda_{ij}$ for unrelated pairs (\ie $K_{ij} = \mathrm{U}$) and the 
+curves on the right (having mass at values $>0$) show the distribution for samples from the same individual
+($K_{ij} = \mathrm{S}$).  Different colors denote numbers of loci typed in both members of
+the pair.  Curves are density estimates of $10^5$ simulated pairs for each number of loci. Simulations were done using
+genotype category frequencies in the Northern and Southern DPS as indicated. $\epsilon_\ell$ was assumed to be 0.05 for
+each locus. ({\em b}) Values of $\Lambda_{ij}$ observed for all pairs of individuals (from Northern or Southern DPS)
+with at least 40 loci typed on both members of the pair. Different colors denote pairs of three different types: {\bf MGD}: 
+``multiply-genotyped DNA''---samples known to be the same sample genotyped on multiple different chips; {\bf SIDT}: ``same
+individual, duplicate tissue''---samples treated in the lab as completely separate, though they were different tissues sampled 
+multiple times from the same individual; {\bf NKS}: ``not known to be self''---samples that are not known {\em a priori} to 
+be of the same individual. Numbers to the left of the panel indicate the total number of pairs of each of the 
+three types. The duplicate DNA samples are unambiguously apparent from their high $\Lambda_{ij}$ values.  The two
+blue (SIDT) dots near $\Lambda_{ij} = -50$ in the Southern DPS are clearly due to a sample rearrangement at some point 
+in the data collection or genotyping process.
+\label{fig:self-id}}
 \end{figure*}
+Comparison of the $\Lambda_{ij}$ values across all pairs of genotypes show unambiguous identification of 
+samples from the same individual (Fig.~\ref{fig:self-id}{\em b})
+
+
 
 \textcolor{red}{Note, there seems to be a clear error in the duplicate samples page in the spreadsheet.  Namely, AM000120 and AM000149 are clearly the same fish as are AM000131 and AM000137, but the sample sheet has that AM000120 and AM000131 are the
 same and that AM000137 and AM000149 are the same.}
+
+
 \section*{Discussion}
+We are pleased to report that our panel of 74 \snptype{} assays for green sturgeon are a cost effective
+and reliable method for identifying green sturgeon from the two DPSs on the West Coast.  These SNPs provide
+substantially better resolution than panels of microsatellites that have been used previously \citep{Israeletal2009}
+and are considerably less expensive and less labor intensive to genotype and score.  Additionally, they provide
+a means to unambiguously identify individuals that have been sampled more than once.  This may prove useful for
+the study of ocean-caught green sturgeon.
+
+
 
 \section*{Acknowledgments}
 We are grateful to \ldots
