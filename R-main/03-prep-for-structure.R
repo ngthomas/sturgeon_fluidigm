@@ -9,6 +9,23 @@ source("R/load-packages.R")
 #g <- tbl_df(read.csv(gzfile("data/new_score_allplates.csv.gz"), stringsAsFactors = FALSE))
 g<- readRDS("outputs/genotype_from_five_chips.rds")
 
+# right here we do a funny thing---tally up how many loci there are of different
+# numbers of genotype categories (we use this in the results...)
+tmp <- g %>%
+  filter(total.k > 0) %>%
+  group_by(assay, total.k) %>%
+  tally
+
+num_loc_by_num_cat <- table(tmp$total.k)
+
+# and let's also count stuff up as far as number of typed loci
+tmp <- g %>%
+  filter(total.k > 0, new.k > 0) %>%
+  group_by(full.name, plate) %>%
+  summarise(numL = n())
+
+num_60_locs_or_more <- tmp %>% filter(numL >= 60) %>% dim %>% "["(1)
+
 # now, we have an issue to deal with. Some individuals were scored on multiple
 # plates.  Here is what I propose we do:
 # 1. Toss out all genotypes that are 0's  

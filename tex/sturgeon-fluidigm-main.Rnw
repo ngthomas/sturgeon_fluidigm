@@ -149,11 +149,11 @@ source("R-main/03-prep-for-structure.R")
     \mbox{}\\
     {\small \myEmailFootnote Correspondence: \myEmailAddress}
     
-   \begin{abstract}
-   	\input{abstract.Rnw}     %% Put abstract text in here.  If we want to include R code in it we will have to
+%   \begin{abstract}
+%   	\input{abstract.Rnw}     %% Put abstract text in here.  If we want to include R code in it we will have to
                              %% use Sexpr{knit_child("doc.Rnw")} instead of \input{abstract.Rnw}.  But using \input gives us good
                              %% syncing
-    \end{abstract}
+%    \end{abstract}
    \end{strip}
 
 {\small
@@ -168,51 +168,88 @@ source("R-main/03-prep-for-structure.R")
 
 \section*{Introduction}
 
-This is super free-form, stream of consciousnessy at the moment, as I get some ideas
-down onto the page.
+The Southwest Fisheries Science Center's (SWFSC) Fisheries Ecology Division (FED) in Santa Cruz, CA
+received tissue samples from adult green sturgeon caught as bycatch in West Coast fisheries
+from 2007 to 2013.  The tissues were provided by the Southwest Region with the intent
+that the SWFSC develop a cost-effective, single nucleotide polymorphism (SNP)
+genotyping method to identify the Distinct Population Segment that each
+sample belonged to, and, if possible, to identify DNA samples 
+from the same individual, thus potentially allowing the detection of fish that had been captured
+(and sampled) more than once as bycatch.
 
-The study of highly migratory species in environments that are difficult to monitor present
-a number of challenges.   Often, the migrations themselves cannot be observed.
-Genetic data has been successful in inferring the ecology of a number of species
-that are otherwise difficult to study (CITE).  It is now fairly routine to do this
-in most species, especially diploid ones.  Genetic methodologies are well-established for microsats, SNPs, and to an increasing extent, lately, next generation sequencing data.
-Concurrently, the last two decades have seen an explosion in the availability statistical
-methods for analyzing genetic data.  
+The SWFSC also obtained tissue samples from juvenile sturgeon and sturgeon eggs native to the
+Klamath and Sacramento Rivers---spawning grounds for Northern and Southern DPS fish, respectively.
+These were used to identify genetic differences between the two DPSs in a genome scan, to develop
+SNP assays, and for use in a genetic baseline to assigning fish to DPS.
 
-The vast majority of methods have been developed for diploid organisms.  When these methods
-can be extended to polyploids their extension
-typically requires that the number of copies of individual alleles can be resolved in a
-polyploid genotype, or that the exact inheritance patterns are known, which is not always
-the case.  The challenges of polyploids have been
-well-appreciated in botanical fields for some time (CITE Fisher's polyploid inheritance
-paper), and these difficulties have been gaining increasing attention in the field of
-molecular ecology (CITE that recent review).  
+As sturgeon are a tetraploid species, they are not amenable to SNP genotyping using
+all of the technologies developed for genotyping diploid species.  Our work required
+developing genotyping system and workflow to allow scoring of tetraploid species using
+the Fluidigm \snptype{} assay system.  In our system, we do not resolve the individual
+alleles and their dosages carried by each tetraploid individual, but, rather, score individuals
+into ``genotype categories.''  The inheritance properties of such ``genotype categories'' are
+not known, but with proper tailoring of the statistical models involved they are still
+suitable for assessment of population structure, assigment of 
+individuals to DPS, and identification of samples from the same indvidual.
 
-Significant advances have been made in the development of models for polyploids and
-particularly for tetraploids, for example, fitTetra, and the work from Brazil on
-sugar cane.  However, sometimes that quality of scoring is not high enough to 
-resolve all those allele copies. Furthermore, the assumptions underylying fitTetra
-are probably not appropriate when samples are mixture of diverged tetraploid populations.
-(ERIC VERIFY THIS)
-Clearly, it would be best to be able to resolve
-and count all the alleles, but in cases where that is not possible for a majority of the
-loci that have been discovered, alternative modes of analysis are sought.  One such
-alternative analysis method is to treat alleles in polyploids as dominant markers.  This
-approach has been used recently in population assignment (Israel et al.) and CITE, and CITE,
-and more recently Wang and Scribner have shown the utility of that approach for doing
-relationship inference.  
+We describe our methods and results below.  The results make it clear that there is a substantial
+amount of genetic differnentiation between the two DPSs, and that the panel of SNPs and
+the statistical procedures we have developed
+provide a robust, cost-effective, and extremely accurate means of identifying the DPS of 
+individual green sturgeon and for identifying green sturgeon that have been encountered
+and sampled multiple times.
 
-Modeling everything as a dominant marker (presence/absence of the allele) is particularly
-well-suited to microsatellite loci where length polymorphisms are easy to interpret.
-However, using xxxxxx-type SNP assays (like fluidigm assays)  the individual alleles
-may not be so easily resolved, because the scoring relies on individual genotypes clustering
-in two space, and it might not always be easy to resolve the 5 expected genotype clusters.
-For such data, trying to resolve the data into individual, expected genotype categories
-might be unworkable for many loci, especially if typing members of fairly well-diverged
-lineages.  Depending on the goal of genetic analysis, however, it may still not be
-necessary to require thinking about the data only as  individual alleles giving rise to
-a full complement of expected genotypes.
 
+
+
+
+
+%%%%% HERE ARE THOUGHTS FOR AN INTRODUCTION FOR A JOURNAL PAPER  %%%%%%%%%%%
+% This is super free-form, stream of consciousnessy at the moment, as I get some ideas
+% down onto the page.
+% 
+% The study of highly migratory species in environments that are difficult to monitor present
+% a number of challenges.   Often, the migrations themselves cannot be observed.
+% Genetic data has been successful in inferring the ecology of a number of species
+% that are otherwise difficult to study (CITE).  It is now fairly routine to do this
+% in most species, especially diploid ones.  Genetic methodologies are well-established for microsats, SNPs, and to an increasing extent, lately, next generation sequencing data.
+% Concurrently, the last two decades have seen an explosion in the availability statistical
+% methods for analyzing genetic data.  
+% 
+% The vast majority of methods have been developed for diploid organisms.  When these methods
+% can be extended to polyploids their extension
+% typically requires that the number of copies of individual alleles can be resolved in a
+% polyploid genotype, or that the exact inheritance patterns are known, which is not always
+% the case.  The challenges of polyploids have been
+% well-appreciated in botanical fields for some time (CITE Fisher's polyploid inheritance
+% paper), and these difficulties have been gaining increasing attention in the field of
+% molecular ecology (CITE that recent review).  
+% 
+% Significant advances have been made in the development of models for polyploids and
+% particularly for tetraploids, for example, fitTetra, and the work from Brazil on
+% sugar cane.  However, sometimes that quality of scoring is not high enough to 
+% resolve all those allele copies. Furthermore, the assumptions underylying fitTetra
+% are probably not appropriate when samples are mixture of diverged tetraploid populations.
+% (ERIC VERIFY THIS)
+% Clearly, it would be best to be able to resolve
+% and count all the alleles, but in cases where that is not possible for a majority of the
+% loci that have been discovered, alternative modes of analysis are sought.  One such
+% alternative analysis method is to treat alleles in polyploids as dominant markers.  This
+% approach has been used recently in population assignment (Israel et al.) and CITE, and CITE,
+% and more recently Wang and Scribner have shown the utility of that approach for doing
+% relationship inference.  
+% 
+% Modeling everything as a dominant marker (presence/absence of the allele) is particularly
+% well-suited to microsatellite loci where length polymorphisms are easy to interpret.
+% However, using xxxxxx-type SNP assays (like fluidigm assays)  the individual alleles
+% may not be so easily resolved, because the scoring relies on individual genotypes clustering
+% in two space, and it might not always be easy to resolve the 5 expected genotype clusters.
+% For such data, trying to resolve the data into individual, expected genotype categories
+% might be unworkable for many loci, especially if typing members of fairly well-diverged
+% lineages.  Depending on the goal of genetic analysis, however, it may still not be
+% necessary to require thinking about the data only as  individual alleles giving rise to
+% a full complement of expected genotypes.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \section*{Methods}
@@ -256,7 +293,7 @@ This protocol uses restriction enzyme digestion and DNA fragment size selection
 to reduce the fraction of
 genome that is sequenced, ensuring that a small portion of the genome can be sequenced to
 a sufficiently high read depth in a number of different individuals.  Four of the samples were
-juveniles from the Klamath River (Northern DPS) and \textcolor{red}{four were juveniles} from the
+juveniles from the Klamath River (Northern DPS) and four were juveniles from the
 Upper Sacramento River. 21.24 million sequence reads, each of
 300 base pairs, generated by the sequencing run were assembled into 84,747 putatively unique genetic 
 loci (regions of the genome) and, within those regions, we identified 21,218 SNPs, with minor allele
@@ -384,9 +421,9 @@ the X-Y plot, then, in post-processing the output of the Fluidigm software, we c
 genotype category four (or five).  If the point fell in the lower right part of the plot, 
 then it would have remained in genotype category one (or two).  To ensure that scoring can be done easily
 by different members of our lab, and to allow other labs to use this scoring procedure, we 
-\textcolor{red}{will wrap the necessary data and R code into an R package, {\tt gsSNPscore}.}
+will wrap the necessary data and R code into an R package, {\tt gsSNPscore}.
 
-\subsection*{Population structure and assignment, and individual assignment}
+\subsection*{Population structure,  population assignment, and individual assignment}
 Our scoring method does not resolve the exact genotype of each individual---the precise dosage of different alleles within an individual is not obtained. Accordingly, these data are not appropriate for use in analytical models that assume information 
 about the individual, constituent alleles of each individual's genotype. However, 
 there are still a number of statistical analyses that may be done in an entirely 
@@ -397,26 +434,30 @@ entirely valid.  In that case, the software implements a finite mixture model in
 the component-specific parameters are the frequencies of different genotype categories
 at each locus, and an individual's genotype category is assumed drawn, independently 
 at each locus, from these frequencies.  
-
 Such a model does not require any notion of
-constituent alleles or mode of inheritance.  The same is true of population assignment or, as
-it is often called in fisheries, ``genetic stock identification'' (GSI),  under
+constituent alleles or mode of inheritance.    We included all individuals from which we
+had successfully obtained scores at 60 or more loci in multiple runs
+of {\em structure} at $K$ (the number of subpopulations) equal to one, two, and three.
+
+In similar fashion, population assignment or, as
+it is often called in fisheries, ``genetic stock identification'' (GSI), can be carried out, using
+our definition of genotype categories, under
 a haploid model.  The model underlying GSI is nearly identical to the {\em structure} model described above,
 except that {\em structure} assumes that the proportion of individuals from each component is
 equal, while in GSI that proportion is estimated.  We used the egg/juvenile reference samples from the Sacramento and Klamath
-rivers, respectively, as our "baseline" samples from the Southern and Northern DPSs, respectively.
+rivers, as our "baseline" samples from the Southern and Northern DPSs, respectively.
 We then performed GSI on the remaining samples, using the program {\em gsi\_sim}
 \citep{Andersonetal2008,Israeletal2009},
 obtaining for each fish a posterior probability that it belongs to the Southern or Northern DPS.
 
 
-Though it would be difficult to use our genotype categories, which have unknown inheritance properties,
-to infer related individauls (\ie to identify parent-offspring pairs, or full-siblings), there are fewer
-difficulties in using the observed genotype categories to identify the same individual, multiply-sampled.  We developed a
+Though it could be challenging to use our genotype categories, which have unknown inheritance properties,
+to infer related individauls (\ie to identify parent-offspring pairs, or full-siblings), it is possible
+to use the observed genotype categories to identify the same individual, multiply-sampled.  We developed a
 straightforward likelihood-based approach to identify genotypes from the same sample.  Let $\bp_\ell$ 
 be the frequencies of the genotype categories at locus $\ell$ in the DPS from which a pair of individuals
 originate.  For example, if four categories are 
-scored at locus $\ell$, then $\bp = (p_{\ell,1}, \ldots, p_{\ell,4})$ with $\sum_{k=1}^4 p_{\ell,k} = 1$.
+scored at locus $\ell$, then $\bp = (p_{\ell,1}, \ldots, p_{\ell,4})$, with $\sum_{k=1}^4 p_{\ell,k} = 1$.
 Assume that at locus $\ell$ a fraction $\epsilon_\ell$ of the samples is expected to be subject to 
 genoytping error.  If a sample is subject to genotyping error, then its observed genotype category
 is drawn from $\bp_\ell$, independently of its true, unobserved genotype category. (Though this is
@@ -448,13 +489,41 @@ where $\delta(g = h)$ is 1 when $g=h$ and 0 otherwise.  This can be written more
 & & (1-\epsilon_\ell)^2  p_{\ell,g}  \delta(g = h) + (2\epsilon_\ell - \epsilon_\ell^2) p_{\ell,g} p_{\ell,h}. \label{eq:pairS}
 \end{eqnarray}
 
-
-
-
+A log-likelihood ratio statistic that can be used to identify pairs of samples $i$ and $j$ from the same
+individual is then
+\begin{equation}
+\Lambda_{ij}= \log\frac{P(y^{(i)}_\ell = g, y^{(i)}_\ell = h | K_{ij} = \mathrm{S})}
+{P(y^{(i)}_\ell = g, y^{(i)}_\ell = h | K_{ij} = \mathrm{U})}
+\label{eq:logl}
+\end{equation}
+To approximate the distribution of $\Lambda_{ij}$ under $K_{ij} = \mathrm{S}$ and $K_{ij} = \mathrm{U}$, we
+conducted Monte Carlo simulations using values of $\bp$ for the Northern and Southern DPSs obtained
+by counting genotyping categories scored on individuals assigned by {\sc structure} to the Northern DPS and Southern DPS
+clusters.  For the simulation of pairs and for the calculation of $P(y^{(i)}_\ell = g, y^{(i)}_\ell = h | K_{ij} = \mathrm{S}$ 
+for each simulated pair we assumed a conservatively high genotyping error rate of $\epsilon_\ell = 0.05$ for every locus.  
+$10^5$ genotype pairs were simulated both for $K_{ij} = \mathrm{S}$ and $K_{ij} = \mathrm{U}$. Simulations were first done for 
+the case in which every pair was scored at all of the SNPs developed in our
+panel, and we successively deleted loci randomly from each simulated pair to investigate the expected
+distributions when pairs shared fewer scored loci due to missing data (\ie loci that were not scored).
+We computed $\Lambda_{ij}$ for all pairs
+$ij$ of fish that were either assigned to the Northern DPS or the Southern DPS. Both the
+simulations and the pairwise comparisons of real fish were done using a custom-written
+script in the R programming language \citep{Rcore2015}.
 
 
 
 \section*{Results}
+
+\subsection*{Loci scored}
+Of the 96 SNP assays we originally developed, we found that 74 of them could be reliably scored 
+into genotype clusters. Of these, \Sexpr{num_loc_by_num_cat["2"]} were loci with two genotype
+categories, \Sexpr{num_loc_by_num_cat["3"]} with three, \Sexpr{num_loc_by_num_cat["4"]} with four,
+and \Sexpr{num_loc_by_num_cat["5"]} with five.  Of the 470 attempts made to genotype a DNA sample 
+on the four scoring development chips and chip~five, \Sexpr{num_60_locs_or_more} of those yielded scored genotype
+categories in at least 60 of the 74 loci. Inspection of the distribution of the number of scored 
+loci revealed that, most sample types were consistently genotyped well ($\geq 60$ scored genotype categories)
+except for the egg samples from the Sacramento River (Fig~\ref{fig:success-histos}).
+
 
 \begin{figure}
 \begin{center}
@@ -462,17 +531,40 @@ where $\delta(g = h)$ is 1 when $g=h$ and 0 otherwise.  This can be written more
 \end{center}
 \caption{\footnotesize Histogram showing the number of individuals
 successfully scored for $0,\ldots, 74$ assays, on each of the chips.  Color denotes type of sample; Group Short
-Names as in Table~\ref{tab:samps}}
+Names as in Table~\ref{tab:samps}.  \label{fig:success-histos}}
 \end{figure}
 
+
+
+\subsection*{Analysis with {\em structure}}
+324 individuals had scored genotype categories at 60 or more loci, and were hence included in the analysis with 
+{\em structure.}  This analysis was a clustering analysis in which no prior information was given about the origin
+of the samples, even if that was known (as is the case with the reference samples.)  The posterior probability that each
+individual originated from one of the $K$ clusters is given in Figure~\ref{fig:distruct}.
+%%%%%%
 \begin{figure*}
 \includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_TopLabel_k002r001.pdf}~\raisebox{0.96ex}{$K = 2$} \\
 \includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_NoLabel_k003r001.pdf}~\raisebox{0.96ex}{$K = 3$} \\
 \includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_NoLabel_k004r001.pdf}~\raisebox{0.96ex}{$K = 4$}
-\caption{\footnotesize Representative {\em distruct} plots of {\em structure} estimates of ancestry proportions for \Sexpr{N_for_structure} individuals with $\geq 60$ loci. Sampling location codes in Table~\ref{tab:samps}.}
+\caption{\footnotesize Representative {\em distruct} \protect\citep{rosenberg2004distruct} plots of {\em structure} estimates 
+of posterior probabilities of cluster membership for \Sexpr{N_for_structure} individuals with $\geq 60$ loci. Sampling location 
+codes in Table~\ref{tab:samps}. Each individual is represented by a vertical bar and the amount of different colors in those
+bars represents the posterior probability of cluster membership. For example, with $K=2$ each bar is either completely orange (Northern 
+DPS cluster) or completely blue (Southern DPS cluster), indicating that individuals can be assigned to those clusters with effectively 
+no uncertainty. For $K=3$ and $K=4$ there is more noise, indicating that a model with more than two subpopulations of green sturgeon 
+is not supported by the genetic data.\label{fig:distruct}}
 \end{figure*}
+%%%%%
+The results from {\em structure} show unambiguously that the model for population structure that is best supported by the data
+is one with $K=2$ clusters, and noting the clusters to which the reference samples are assigned it is clear that the clusters
+defined by structure coincide perfectly with the Northern and Southern DPSs of green sturgeon.  The bycatch consists of fish that
+are from both the Northern and Southern DPSs, with a greater proportion from the Southern DPS.  Likewise, it is clear that the 
+fish sampled from the Eel River belong to the Northern DPS.
+
+\subsection*{Population assignment with {\em gsi\_sim}}
 
 
+\subsection*{Individual identification}
 \begin{figure*}
 {\bf (a)}\\
 \includegraphics[width = \textwidth]{../outputs/lambda_densities-crop.pdf}\\
@@ -481,8 +573,6 @@ Names as in Table~\ref{tab:samps}}
 \caption{\footnotesize Simulated and observed distribution of self-ID log likelihood ratio statistics.
 Remember to note that the simulations were done assuming a high genotyping error rate.}
 \end{figure*}
-
-\section*{Results}
 
 \textcolor{red}{Note, there seems to be a clear error in the duplicate samples page in the spreadsheet.  Namely, AM000120 and AM000149 are clearly the same fish as are AM000131 and AM000137, but the sample sheet has that AM000120 and AM000131 are the
 same and that AM000137 and AM000149 are the same.}

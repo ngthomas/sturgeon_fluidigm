@@ -269,10 +269,11 @@ apairs2 <- allpairs %>%
   mutate(pairtype = ifelse(
     name1 == name2, "MGD", ifelse(
       (!is.na(Duplicate_Tissue.x) & name2 == Duplicate_Tissue.x) | (!is.na(Duplicate_Tissue.y) & name1 == Duplicate_Tissue.y)    ,  "SIDT", "NKS"))
-  )
+  ) %>%
+  filter(!(name1 == "AM000129" & name2 == "AM000147" & chip1 == 5))  # manually remove a duplicate row (dupie genotyped twice...)
 
 
-# here, note that AM000120      AM000149  AM000131           AM000137   and bolluxed up.  
+# here, note that AM000120      AM000149  AM000131           AM000137   are bolluxed up.  
 apairs2 %>% filter(LLR > 0, name1 != name2) %>% as.data.frame()
 
 
@@ -298,9 +299,11 @@ g <- ggplot(greensmear, aes(x = LLR, y = pairtype, colour = pairtype)) +
   geom_text(data = the_num_pairs, mapping = aes(label = pretty_nums), 
             x = -95, colour = "black", hjust = 1, size = 3.3) +
   facet_wrap(~ DPS, ncol = 1) +
-  xlim(-100, 70)
+  xlim(-100, 70) 
 
 ggsave(g, filename = "outputs/obs-self-id-logls.pdf", width = 10, height = 3)
 
 system("pdfcrop outputs/obs-self-id-logls.pdf")
 
+# write out the_num_pairs for future reference
+saveRDS(the_num_pairs, filename = "outputs/the_num_pairs.rds")
