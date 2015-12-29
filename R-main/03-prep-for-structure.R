@@ -178,39 +178,61 @@ if(ReDoStructureRuns == TRUE) {
   system("cd StructureArea/clump_and_distruct; ./script/ClumpAndDistructAll.sh 6 ")
 }
 
-#### Now, as long as I am at this, I should try to write to gsi_sim files ####
-if(FALSE) {
+#### Now, as long as I am at this, I should try to write to gsi_sim files and run the analyses ####
 # Since it is pretty obvious that all the fish (adults and juveniles) from the 
 # sacramento and the Klamath are from the right spot, we will include all of them 
-# into the baseline (juvies and adults)
-
-# get the locus stuff to write:
-locs <- cbind("PLOIDY 1", names(merged)[-(1:2)])
+# into the baseline (juvies and adults).
 
 
+# only take individuals with at least 60 loci:
+ForGSI <- AllOfEm[complete.cases(AllOfEm), ]
+  
+  
+NorthBase <- ForGSI %>%
+  filter(group_name == "rjKla") %>%
+  select(-pipe_name, -group_name, -gn1, -gn2) %>%
+  mutate(full.name = paste("Klamath", 1:n(), sep = "_")) %>%  # name the baseline fish something informative for analyzing the self-assignment later
+  select(full.name, everything())
+  
+SouthBase <- ForGSI %>%
+  filter(group_name %in%  c("reSac", "rjSac", "rnSac")) %>%
+  select(-pipe_name, -group_name, -gn1, -gn2) %>%
+  mutate(full.name = paste("Sacramento", 1:n(), sep = "_")) %>%  # name em for self-assignment analysis
+  select(full.name, everything())
 
-glist <- split(merged, merged$origin)
+GSI_mix <- ForGSI %>%
+  filter(!group_name %in%  c("rjKla", "reSac", "rjSac", "rnSac")) %>%
+  select(-pipe_name, -group_name, -gn1, -gn2)
+
+# get the locus preamble stuff to write:
+locs <- cbind("PLOIDY 1", names(NorthBase[-1]))
+
 
 # write the baseline file
-outf <- "gs_baseline.txt"
-cat(nrow(glist$`Sacramento River`) + nrow(glist$`Klamath River`), nrow(locs), "\n", file = outf)
+outf <- "outputs/gs_baseline.txt"
+cat(nrow(SouthBase) + nrow(NorthBase), nrow(locs), "\n", file = outf)
 write.table(locs, quote = FALSE, row.names = FALSE, col.names = FALSE, file = outf, append = TRUE)
-cat("POP  Sacto\n", file = outf, append = TRUE)
-write.table(glist$`Sacramento River`[, -2], quote = FALSE, row.names = FALSE, col.names = FALSE, file = outf, append = TRUE)
-cat("POP  Klamath\n", file = outf, append = TRUE)
-write.table(glist$`Klamath River`[, -2], quote = FALSE, row.names = FALSE, col.names = FALSE, file = outf, append = TRUE)
+cat("POP  SouthernDPS\n", file = outf, append = TRUE)
+write.table(SouthBase, quote = FALSE, row.names = FALSE, col.names = FALSE, file = outf, append = TRUE)
+cat("POP  NorthernDPS\n", file = outf, append = TRUE)
+write.table(NorthBase, quote = FALSE, row.names = FALSE, col.names = FALSE, file = outf, append = TRUE)
 
 
 # write the mixture file
-outf <- "gs_mixure.txt"
-cat(nrow(glist$`Groundfish fishery`) + nrow(glist$`Unknown Origin`) + nrow(glist$`Mystery`), nrow(locs), "\n", file = outf)
+outf <- "outputs/gs_mixure.txt"
+cat(nrow(GSI_mix), nrow(locs), "\n", file = outf)
 write.table(locs, quote = FALSE, row.names = FALSE, col.names = FALSE, file = outf, append = TRUE)
 cat("POP  Mixture\n", file = outf, append = TRUE)
-lapply(levels(merged$origin)[-(1:2)], function(z) 
-  write.table(glist[[z]][, -2], quote = FALSE, row.names = FALSE, col.names = FALSE, file = outf, append = TRUE)
-)
+write.table(GSI_mix, quote = FALSE, row.names = FALSE, col.names = FALSE, file = outf, append = TRUE)
 
-}
+
+# now, fire off some gsi_sim analyses
+# here, analyze the mixture sample
+system("cd outputs; ../bin/gsi_sim-Darwin -b gs_baseline.txt -t gs_mixure.txt")
+
+# here, do self-assignment, and process the output
+system("cd outputs; ../bin/gsi_sim-Darwin -b gs_baseline.txt --self-assign | awk -F\";\" 'BEGIN {print \"FromPop  SouthScore NorthScore NumL\"} /^UNSORTED_SELF_ASS_LIKE_GC_CSV/ {print $1, $3, $6, $(10)}' | sed 's/UNSORTED_SELF_ASS_LIKE_GC_CSV:\\///g; s/_[0-9]*//g;' > self-assigment-scores.txt")
+
 
 
 
