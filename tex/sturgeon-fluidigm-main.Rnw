@@ -117,7 +117,7 @@ knitr::opts_knit$set(concordance = TRUE)
 
 % a knitr chunk to evaluate the code needed to produce variables and figures we need
 % in this section
-<<set-flags-and run R-main scripts, include=FALSE, cache = FALSE>>=
+<<set-flags-and-run-R-main-scripts, include=FALSE, cache = FALSE>>=
 ReDoStructureRuns = FALSE
 
 # these scripts write output to the outputs directory
@@ -669,8 +669,28 @@ We are grateful to \ldots
 %%%%%%%%%%%%%%%% END MAIN BODY
 \bibliographystyle{men}
 {\footnotesize
-\bibliography{sturgeon-fluidigm}}
+\bibliography{sturgeon-fluidigm}}\
 
- \end{document}
+%% Down at the end, we use the .tex file to typeset a one-column version
+<<typeset-one-column, include=FALSE, cache=FALSE>>=
+library(stringr)
+library(dplyr)
+tex <- readLines("tex/sturgeon-fluidigm-main.tex")
+tex2 <- tex %>% str_replace(",twocolumn\\]", "]") %>% 
+  str_replace(., "\\\\begin\\{strip\\}", "") %>%
+  str_replace(., "\\\\end\\{strip\\}", "") %>%
+  str_replace(., ".*images/banner\\.pdf.*", "") %>%
+  str_replace(., "\\\\fancyfoot\\[RE,LO\\]", "%\\\\fancyfoot[RE,LO]") %>%
+  str_replace(., "\\\\lfoot\\[\\]", "%\\\\lfoot[]")
+
+  # write it out to a new latex file
+  cat(tex2, file = "tex/sturgeon-fluidigm-one-column.tex", sep = "\n")
+  
+  # then typeset it
+  system("cd tex; latexmk -pdf sturgeon-fluidigm-one-column.tex")
+@
+
+
+\end{document}
 
 
