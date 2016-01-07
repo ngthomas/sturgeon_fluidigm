@@ -26,6 +26,10 @@ dps_df <- so %>%
   select(full.name, DPS)
 
 
+# write that out:
+saveRDS(dps_df, file = "outputs/structure_dps_assigns.rds")
+
+
 # now, we stick DPS designations onto the genotype categories and count the up
 geno <- readRDS("outputs/genotype_from_five_chips.rds")
 
