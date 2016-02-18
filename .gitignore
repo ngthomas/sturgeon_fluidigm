@@ -5,9 +5,12 @@
 outputs
 stuff_from_crandall
 data/meta/private.xls
+data/meta/private2.xls
 
 .DS_Store
 
 StructureArea
 
 *.Rapp.history
+
+R-explore

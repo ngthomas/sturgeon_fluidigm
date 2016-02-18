@@ -17,6 +17,16 @@ sam <- read.csv("data/meta/sample_sheet.csv", stringsAsFactors = FALSE) %>% tbl_
 lat_long <- readxl::read_excel("data/meta/private.xls", sheet = 2, skip = 4) %>%
   select(TISSUE_SAMPLE_ID, NMFS_DNA_ID, RETRIEVE_LAT, RETRIEVE_LONG)
 
+
+# while we are at it, get all the meta data for the bycatch:
+all_meta <- readxl::read_excel("data/meta/private.xls", sheet = 2, skip = 4)
+AssigAll <- sam %>%
+  filter(collection_location == "Bycatch") %>%
+  select(NMFS_DNA_ID) %>%
+  left_join(dps_df) %>%
+  left_join(all_meta)
+write.csv(AssigAll, file = "outputs/bycaught_sturgeon_with_DPS.csv")
+
 # now put these together to get just the bycatch samples
 DF <- sam %>%
   filter(collection_location == "Bycatch") %>%
