@@ -168,36 +168,55 @@ source("R-main/03-do-structure-and-gsi.R")
 
 \section*{Introduction}
 
-The Southwest Fisheries Science Center's (SWFSC) Fisheries Ecology Division (FED) in Santa Cruz, CA
-received tissue samples from adult green sturgeon caught as bycatch in West Coast fisheries
-from 2007 to 2013.  The tissues were provided by the Southwest Region with the intent
-that the SWFSC develop a cost-effective, single nucleotide polymorphism (SNP)
-genotyping method to identify the Distinct Population Segment that each
-sample belonged to, and, if possible, to identify DNA samples 
-from the same individual, thus potentially allowing the detection of fish that had been captured
-(and sampled) more than once as bycatch.
+We describe here novel molecular genetic markers and methodology for the study
+of green sturgeon (Acipenser medirostris). Green sturgeon are anadromous fish
+inhabiting the northeastern Pacific and its tributaries. Spawning activity is
+known to occur primarily in the Sacramento, Klamath and Rogue river basins
+\citep{adams2002status}, although adult green sturgeon enter other rivers and
+spawning activity has recently been confirmed in the Eel River of California.
+Previous status reviews \citep{adams2002status,nmfs2015sturgeon} have determined that
+there are two Distinct Population Segments (DPSs) of green sturgeon. The
+Southern Green Sturgeon DPS includes fish originating from the Sacramento River,
+and the Northern Green Sturgeon DPS includes fish originating from the Klamath
+and Rogue rivers. Previous status reviews \citep{adams2002status,nmfs2015sturgeon} have
+determined that the Southern DPS is threatened with risk of extinction and it
+has been listed for protection under the US Endangered Species Act as such. The
+Northern DPS is a National Marine Fisheries Service (NMFS) Species of Concern.
 
-The SWFSC also obtained tissue samples from juvenile sturgeon and sturgeon eggs native to the
-Klamath and Sacramento Rivers---spawning grounds for Northern and Southern DPS fish, respectively.
-These were used to identify genetic differences between the two DPSs in a genome scan, to develop
-SNP assays, and for use in a genetic baseline to assign fish to DPS.
+The NMFS Southwest Fisheries Science Center's (SWFSC) Fisheries Ecology Division
+(FED) has engaged in a research and development program to provide new molecular
+genetic methods for use in biological inference, conservation and management of
+green sturgeon. Specifically, we have used next generation (high- throughput)
+DNA sequencing to identify variable sites (polymorphisms) in the green sturgeon
+genome and used this information to develop a panel of molecular assays that
+target those sites and can be used to characterize these polymorphisms in
+individual fish. The initial application goal for these genetic markers was to
+use them in identifying individual green sturgeon to their DPS of origin. The
+secondary objective was to evaluate their ability to identify specific
+individuals that have been sampled more than once (i.e., as DNA ``fingerprints'').
 
-As sturgeon are a tetraploid species, they are not amenable to SNP genotyping using
-all of the technologies developed for genotyping diploid species.  Our work required
-developing a genotyping system and workflow to allow scoring of tetraploid species using
-the Fluidigm \snptype{} assay system.  In our system, we do not resolve the individual
-alleles and their dosages carried by each tetraploid individual, but, rather, score individuals
-into ``genotype categories.''  The inheritance properties of such ``genotype categories'' are
-not known, but with proper tailoring of the statistical models involved they are still
-suitable for assessment of population structure, assigment of 
-individuals to DPS, and identification of samples from the same indvidual.
+Green sturgeon have experienced a recent duplication of their entire genome and
+are a tetraploid species. As such, they are not amenable to traditional
+population genetic evaluation using the methods developed for calling genotypes
+in diploid species. We were therefore required to develop a genotyping system
+and workflow to allow calling of polymorphisms in tetraploid species. In our
+system, we
+use the Fluidigm  \snptype{} assay system and we do not call the
+individual alleles and the dosage (number of copies) carried by each tetraploid
+individual, but, rather, place individuals into ``genotype categories.'' The
+inheritance properties of such genotype categories are not directly considered
+in the statistical analysis, but they are still suitable for both the assignment
+of individuals to DPS and the identification of samples from the same
+individual.
 
-We describe our methods and results below.  The results make it clear that there is a substantial
-amount of genetic differentiation between the two DPSs, and that the panel of SNPs and
-the statistical procedures we have developed
-provide a robust, cost-effective, and extremely accurate means of identifying the DPS of 
-individual green sturgeon and of identifying green sturgeon that have been encountered
-and sampled multiple times.
+We describe below how these new markers and methods uncover a substantial amount
+of genetic differentiation between the two green sturgeon DPSs, and that the
+panel of SNP markers and the statistical procedures we have developed provide a
+robust, cost-effective, and extremely accurate means of identifying the DPS of
+origin for individual green sturgeon and of identifying green sturgeon that have
+been sampled multiple times.
+
+
 
 
 
@@ -258,17 +277,20 @@ and sampled multiple times.
 
 \subsection*{Genetic Samples}
 
-We received samples of two general categories.  Samples collected in freshwater rivers known to have 
-well-established spawning populations of green sturgeon---the Sacramento River and the Klamath River, in this study---are
-``reference'' samples. Some of these samples were taken from eggs collected on egg mats or 
-from juvenile fish, either of which must have been spawned in the river from which they were sampled. 
-We refer to these as ``egg/juvenile reference'' samples.  By contrast, ``non-juvenile reference'' samples are 
-taken from adult fish that may be non-spawning visitors, native to a river different 
-from the one they were sampled in. 
-Samples taken from the ocean or from rivers without an historically abundant 
-spawning population are ``non-reference'' samples.  These include green sturgeon caught as 
-bycatch in ocean fisheries, and five adult fish sampled from the Eel River, CA.   See Table~\ref{tab:samps} for a summary
-of sample sizes.
+We received samples of two general categories. The first is samples collected in
+two rivers known to have well-established spawning populations of green
+sturgeon---the Sacramento River and the Klamath River. These samples were used to
+construct the ``reference'' or ``baseline'' dataset. All of these samples were taken
+from juvenile fish or from eggs collected on egg mats, either of which must have
+been spawned (originated) in the river from which they were sampled. We refer to
+these as ``egg/juvenile reference'' samples. There were also a few samples taken
+from adult or sub-adult fish in the Sacramento River that may be non-spawning
+visitors, native to a different river, and these are referred to as
+``non-juvenile reference'' samples. Samples taken from the ocean or from rivers
+without an historically abundant spawning population are ``non-reference''
+samples. These include green sturgeon caught as bycatch in ocean fisheries, and
+five fish sampled from the Eel River, CA. See Table~\ref{tab:samps} for a summary of sample
+types and sample sizes. 
 \begin{table*}
 \caption{Summary of genetic samples used in this study.}
 \begin{center}
@@ -280,79 +302,85 @@ of sample sizes.
 \end{center}
 \label{tab:samps}
 \end{table*}
-Tissue samples were predominantly fin clips, dried or stored in ethanol. Samples of eggs were whole, developing eggs, stored in ethanol, and the Klamath River reference samples were whole, small juveniles stored in ethanol. 
-
+Tissue samples were of various types, including fin clips, either dried or 
+stored in ethanol, whole eggs stored in ethanol, or whole
+juvenile specimens stored in ethanol.
 
 
 \subsection*{SNP Discovery and Assay Development}
 
-To discover SNPs to be made into Fluidigm \snptype{} assays,  we first sequenced eight fish
-using a double-digest restriction-site associated DNA protocol
-(ddRAD; \citealt{Petersonetal2012})  on a MiSeq sequencer (Illumina Inc., San Diego, CA).
-This protocol uses restriction enzyme digestion and DNA fragment size selection
-to reduce the fraction of
-genome that is sequenced, ensuring that a small portion of the genome can be sequenced to
-a sufficiently high read depth in a number of different individuals.  Four of the samples were
-juveniles from the Klamath River (Northern DPS) and four were juveniles from the
-Upper Sacramento River. 21.24 million sequence reads, each of
-300 base pairs, generated by the sequencing run were assembled into 84,747 putatively unique genetic 
-loci (regions of the genome) and, within those regions, we identified 21,218 SNPs, with minor allele
-frequencies in the sample of 8 fish greater than 0.25,
-using Stacks software v~1.12 \citep{catchen2011stacks} with the 
-following parameter settings: $m = 4$, $M = 2$, $n = 2$. At 1,118 of the SNPs the four Klamath
-samples carried a single allele that was different from the single allele carried by the four
-Sacramento samples.  Of these 1,118 SNPs, we chose 96 with the highest read depths
-and quality scores to
-submit to Fluidigm Inc. (South San Francisco, CA) for \snptype{} assay design.  Although
-these SNPs appeared to be fixed for alternate alleles in the sequencing samples, many of them
-were polymorphic in the reference samples (see Results).
+To identify SNPs to be made into assays, we first collected DNA sequence
+information from eight green sturgeon on a MiSeq high-throughput DNA sequencer
+(Illumina Inc., San Diego, CA) using a double-digest restriction-site associated
+DNA protocol (ddRAD; \citealt{Petersonetal2012}). This protocol uses restriction
+enzyme digestion and DNA fragment size selection to reduce the fraction of
+genome that is sequenced, ensuring that a sufficiently small portion is
+sequenced to provide adequate numbers of DNA sequences (read depth) from the
+eight different individuals. Four of the samples were from juveniles from the
+Klamath River (Northern DPS) and four were from juveniles from the Upper
+Sacramento River (Southern DPS). These eight are referred to as the ``sequencing''
+samples. The MiSeq run provided 21.24 million sequence reads, each of 300 base
+pairs in length, that were assembled into 84,747 putatively unique genetic loci
+(regions of the genome) and, within those regions, we identified 21,218 SNPs
+with minor allele frequencies in the sample of 8 fish greater than 0.25,
+using Stacks software v~1.12 \citep{catchen2011stacks} under the 
+following parameter settings: $m = 4$, $M = 2$, $n = 2$. At
+1,118 of the SNPs, the four Klamath samples had a single allele (variant) that
+was different from the single allele carried by the four Sacramento samples. Of
+these 1,118 SNPs, we chose 96 with the highest read depths and quality scores to
+submit to Fluidigm Inc. (South San Francisco, CA) for SNPTypeTM assay design.
+Although these SNPs appeared to be fixed for alternate alleles in the sequencing
+samples, many of them were polymorphic in the reference samples (see Results).
 
-The 96 \snptype{} assays are loaded together with 94 green sturgeon samples and
-two non-template controls (samples prepared with no DNA in them) onto 96.96 Fluidigm Dynamic Arrays for genotyping. Fluidigm nanofluidic 
-technology allows simultaneous genotyping of all 9,216 sample-by-locus combinations.  Each allele
-at a SNP corresponds to a fluorescent dye and the genotype of an individual can be scored from the
-intensity of fluorescence for each of those dyes.  Fluidigm provides software that allows computerized
-scoring of diploid individuals, but the software is not designed for the scoring of tetraploid genotypes.
- 
+The 96 assays were then loaded together with 94 green sturgeon samples and two
+non-template controls (samples prepared with no DNA in them) onto 96.96 Fluidigm
+Dynamic Arrays (chips) for genotyping. Fluidigm nanofluidic technology allows
+simultaneous genotyping of all 9,216 combinations of 96 loci and 96 individuals
+on a single chip. These assays contain two gene probes that are specific to the
+two alleles uncovered in a next generation sequencing effort. These probes carry
+fluorescent dyes that measure the relative abundance of the two variants and
+report them as relative fluorescence intensities in a two-dimensional coordinate
+space. Each allele at a SNP therefore corresponds to a fluorescent dye and the
+genotype of an individual can be called from the intensity of fluorescence for
+each of those dyes. Fluidigm provides software that allows computerized genotype
+calling
+ of diploid individuals, but the software is not designed for the calling
+of tetraploid genotypes.
 
-\subsection*{Developing a Scoring Methodology}
-While there have been recent advances in methodologies for scoring the genotypes of
+\subsection*{Developing Calling Methodology}
+While there have been recent advances in methodologies for calling the genotypes of
 tetraploid individuals using SNP assay intensity data, when we
 used one of these methods, {\sc FitTetra} \citep{voorrips2011genotype}, on our data, only 49 of the 96
-SNPs were scorable by the software.  Further, upon visual inspection of the
+SNPs were callable by the software.  Further, upon visual inspection of the
 intensity data for the called genotypes, we had high confidence in the reproducibility of the 
 genotype calls in even fewer assays. And finally, {\sc FitTetra} does not appear to have a good 
 mechanism for using the genotypes of individuals that have been genotyped on multiple chips to guide
-the SNP selection and intensity-modeling process.
-Accordingly, we developed our own manual scoring procedure based on the intensity data from the 
-Fluidigm platform.  This is manageable since we are using only 96 assays and have a relatively
-small number of samples, and in our opinion, is a preferable strategy, for this project, to using the program
-{\sc FitTetra}.  It should be noted that the recommended procedure for using {\sc FitTetra} involves a 
+the SNP selection and intensity-modeling process. Accordingly, we developed
+our own manual calling procedure based on the fluorescence intensity data from
+the Fluidigm assays.  It should be noted that the recommended procedure for using {\sc FitTetra} involves a 
 substantial decision-making effort by the user, including empirical 
 adjustment of parameters and some hand curation. Our approach does the same, but with a more visual
 method, rather than using the underlying modeling framework of {\sc FitTetra}.
 
-Apparent in our data were two difficult features. First, at many of the 96
-green sturgeon SNPs there were not five, clear, scorable genotypes, as might be
-hoped for in tetraploids; rather, many of the clusters in the fluorescence intensity data were 
-indistinct or overlapping. Second, 
-we encountered considerable chip to chip variation in fluorescence
-intensity. To deal with the indistinct genotype clustering, we noted that,
-for population assignment
-and for individual identification, it is not necessary to resolve the
-exact dosage for each allele
-within an individual.  It suffices to score an individual into a 
-particular {\em genotype category} without reference to the underlying alleles.  Thus, individuals 
-with different {\em genotypes} may be scored as being in the same genotype {\em category} if the
-genotypes themselves are difficult to resolve on the basis of their
-fluorescent intensities.  This approach allows the user to define genotype
-categories that are easily and clearly resolved. To address the chip-to-chip variation we 
-include, on each chip, a number of individuals that have appeared on a previous chip, so that 
-corresponding clusters between the chips can be identified. 
+Apparent in our data were two difficult features. First, data from assays of
+many of the 96 green sturgeon SNPs did not have five, clear, callable
+fluorescence clusters (genotypes), as expected for tetraploids; rather, many of
+the clusters in the fluorescence intensity data were indistinct or overlapping.
+Second, we encountered considerable chip-to-chip variation in fluorescence
+intensity. To deal with the indistinct clustering it suffices to put an
+individual into a particular {\em genotype category} without reference to the
+underlying alleles. Thus, individuals with different {\em genotypes} may be put in the
+same genotype {\em category} if the genotypes themselves are difficult to resolve on
+the basis of their fluorescence intensities. To address the chip- to-chip
+variation, each chip includes samples from a number of individuals that have
+been previously analyzed, so that corresponding clusters between the chips can
+be identified.
 
-We first used four chips (our {\em scoring-development chips}, Table~\ref{tab:devo-samps}) to decide which loci were consistently scorable and, at each locus, the number of genotype  categories
-that could be resolved.  Some individuals were genotyped on multiple chips which allowed us to visually account for 
-chip-to-chip variation.  
+We first used four chips to decide which loci were consistently callable 
+({\em call-development chips}) and, at each locus, the number of genotype categories that
+could be resolved. Some individuals were genotyped on multiple chips, which
+allowed us to visually account for chip-to-chip variation (Table~\ref{tab:devo-samps}). 
+%%%%%%%%%%%%%%%
 \begin{table}
 \hrule \kern 0.5mm \hrule
 \small
@@ -375,17 +403,24 @@ chip-to-chip variation.
 \end{center}
 \hrule
 \end{table}
-We created a series of plots (one for each locus) plotting the raw fluorescent intensities from the
-Fluidigm chip reader.  The {\em raw} intensities are those that have not been transformed based on the
+%%%%%%%%%%%%%%%%%%%%%
+We then created a
+series of graphs (one for each locus) that plotted the raw fluorescence
+intensities from the Fluidigm chip reader. The {\em raw} intensities are 
+those that have not been transformed based on the
 observed intensity of the two no-template controls (NTCs) on the chip.
 Raw intensities are not available from the
 Fluidigm SNP Genotyping Analysis Software by default, but, with a request and a code from
 Fluidigm technical support (ph.~866-358-4354), they can be
-accessed.  We used the raw intensities at this stage because there was less chip-to-chip variability in them
-compared to the NTC-normalized values available, by default, from the software. On these plots we colored the
-results from each chip a different color and connected the same sample genotyped on different chips with
-line segments.  The plots of four exemplar loci with 2, 3, 4, and 5 genotype categories regarded as scorable, respectively,
-are shown in Figure~\ref{fig:plate_xy}. Similar plots for all of the loci are available in the Supporting
+accessed.  We used the raw intensities at this stage because there was less chip-to-chip
+variability in them
+compared to the NTC-normalized values available, by default, from the software. On these 
+graphs, results from each
+chip are in a different color and points for the same sample genotyped on
+different chips connected with line segments. The plots of four exemplar loci
+with 2, 3, 4, and 5 genotype categories regarded as callable, respectively, are
+shown in Figure~\ref{fig:plate_xy}. 
+Similar plots for all of the loci are available in the Supporting
 Information.
 \begin{figure*}
 (a)\\
@@ -402,75 +437,100 @@ according to the genotype category to which they have been scored.  Category~0 (
 is recorded as having missing data at the locus.}
 \label{fig:plate_xy}
 \end{figure*}
-It is particularly instructive to study the clusters of fluorescent intensities at locus ame\_21745---the first panel in Figure~\ref{fig:plate_xy}{\em a}.    
-At this locus there are three clusters of points that might be resolved; however the two clusters on the right side of the plot 
-are rather close together and could be difficult to resolve in the face of substantial chip-to-chip variation.   Accordingly,
-we do not attempt to score three separate genotype categories at this locus, choosing instead to score only two categories. 
-In general, we tended to be conservative, preferring to merge nearby clusters into a single genotype category, 
-ensuring that genotype categories could be called reliably, rather than maintaining more genotype categories,
-some of which could be subject to high rates of genotyping error.
+In general, we tended to be conservative, preferring to merge
+nearby clusters into a single genotype category, ensuring that genotype
+categories could be called reliably, rather than maintaining 
+more genotype
+categories, some of which could be subject to high rates of error in
+categorization. It is instructive to study the clusters of fluorescent intensities at 
+locus ame\_21745---the first panel in Figure~\ref{fig:plate_xy}{\em a}.    
+At this locus there are three clusters of points that might be resolved; however the 
+two clusters on the right side of the plot 
+are rather close together and could be difficult to resolve in the face of
+substantial chip-to-chip variation.   Accordingly,
+we do not attempt to call three separate genotype categories at this locus,
+choosing instead to call only two categories.
 
-In order to score more chips beyond the initial four scoring-development-chips we follow a simple routine. 
-First, we include between 16 and 24 individuals from the scoring-development-chips on the new chip. 
-Second, we plot the raw intensities of the new chip along with the raw intensities on the four scoring-development-chips, 
-including line segments connecting the 16 to 24 individuals between the old and the new chip intensities. 
-This provides visual verification of the correspondence between clusters on the new chip and the genotype
-categories chosen on the basis of the four scoring-development-chips. With those plots as a helpful guide, 
-we then score the new chip using the Fluidigm software which allows the user to ``circle'' clusters
-of points on the fluorescent intensity plots and score them as a particular genotype. 
-Because this software only allows individuals to be
-manually scored into three genotypes (one, two, and three---as expected in a diploid species), we 
-overload those three genotypes by calling genotype categories using a combination of the
-user-scored, Fluidigm-reported genotype and the fluorescent intensities. In other words, if we
-score a genotype as a one (or a two) but its intensities are such that
-it falls in the upper left part of 
-the X-Y plot, then, in post-processing the output of the Fluidigm software, we convert that score to 
-genotype category four (or five).  If the point fell in the lower right part of the plot, 
-then it would have remained in genotype category one (or two).  In this manner we can easily use
-the Fluidigm software's scoring workflow, but resolve individuals into as many as five 
-genotype categories. To ensure that scoring can be done easily
-by different members of our lab, and to allow other labs to use this scoring procedure, we 
-will wrap the necessary data and R code into an R package, {\tt gsSNPscore}.
+For subsequent chips we followed a simple routine. First, we included between 16
+and 24 individuals from the call-development chips on the new chip. Second, we
+plotted the raw fluorescence intensities of the new chip along with the raw
+intensities of the four call-development chips, including line segments
+connecting the results from the 16 to 24 individuals on the old and the new
+chips. This provides visual verification of the correspondence between clusters
+on the new chip and the four call-development chips. With those plots as a
+helpful guide, we then analyzed the new chip using the Fluidigm SNP Genotyping
+software which allows the user to ``circle'' clusters of points on the
+fluorescence intensity plots and call them as a particular genotype. Because
+this software only allows genotypes to be called into three categories (as
+expected for a SNP locus with two alleles in a diploid species), we overlaid on
+these three Fluidigm-reported genotype calls, the five genotype categories using
+a combination of these software-calls, genotype and fluorescence intensities. As
+an example, if the software calls a genotype as a one (or a two) but its
+intensities are such that it falls in the upper left part of the X-Y plot, then,
+we convert that call to genotype category four (or five). If the point fell in
+the lower right part of the plot, then it would have remained in genotype
+category one (or two). In this manner we can easily use a combination of the
+Fluidigm software's genotype calling workflow and post-processing adjustment to
+resolve individual results into as many as five genotype categories. To ensure
+that this calling procedure can be done easily by others, we are packaging the
+necessary data and R code into a software package, gsSNPscore.
+
 
 \subsection*{Population structure,  population assignment, and individual assignment}
-Our scoring method does not resolve the exact genotype of each individual---the precise dosage of different alleles within an individual is not obtained. Accordingly, these data are not appropriate for use in analytical models that assume information 
-about the individual, constituent alleles of each individual's genotype. However, 
-there are still a number of statistical analyses that may be done in an entirely 
-valid, rigorous fashion using only the genotype category data that we have collected. 
-Notably, applying the program {\em structure} assuming a haploid organism and
-using the model {\em without} admixture is 
-entirely valid.  In that case, the software implements a finite mixture model in which 
+
+Our calling method does not resolve the exact genotype of each individual---the
+precise number of copies of each different allele within an individual is not
+obtained. Accordingly, these data are not appropriate for use in analytical
+models that assume information about the individual, constituent alleles of each
+individual's genotype or Mendelian segregation. However, 
+there are still a number of statistical analyses that may be done in a rigorous
+and valid fashion using only the genotype category data that we have collected.
+Notably, it is still valid to
+apply the model-based clustering method in the program {\em structure} assuming a haploid organism and using the model
+without admixture. 
+In that case, the software implements a finite mixture model in which 
 the component-specific parameters are the frequencies of different genotype categories
 at each locus, and an individual's genotype category is assumed drawn, independently 
 at each locus, from these frequencies.  
 Such a model does not require any notion of
-constituent alleles or mode of inheritance.    We included all individuals from which we
-had successfully obtained scores at 60 or more loci in a data set that we analyzed multiple times
-with {\em structure} at $K$ (the number of subpopulations) equal to one, two, and three.
+constituent alleles or mode of inheritance.
+We included all individuals from which we had successfully
+obtained calls at 60 or more loci in an analysis with {\em structure} at K (the number
+of genetic groups or populations) equal to one, two, and three, running it
+multiple times at each K. Our aim was to evaluate the genetic clustering of
+individuals from the ``reference'' sample collections and whether they
+consistently grouped into two clusters, coincident with the DPS categorization.
 
-In similar fashion, population assignment or, as
-it is often called in fisheries, ``genetic stock identification'' (GSI), can be carried out under
-a haploid model, using
-our definition of genotype categories.  The model underlying GSI is nearly identical to the {\em structure} model described above,
-except that 1)~{\em structure} assumes that the proportion of individuals from each component is
-equal, while in GSI that proportion is estimated, and 2)~with {\em structure} we performed
-unsupervised clustering, while for GSI we used known samples from each DPS as ``baseline'' samples.
-We used the egg/juvenile and adult reference samples from the Sacramento River
-and the juvenile reference samples from the Klamath River, as our baseline samples from the Southern
-and Northern DPSs, respectively.
-We assessed how well this baseline allowed self-assignment of the baseline samples using a
-leave-one-out procedure, and then
-we performed GSI on the remaining samples (bycatch samples and Eel River sample), using the
-expectation-maximization algorithm to maximize the likelihood.  All analyses were done using the
-software {\em gsi\_sim} \citep{Andersonetal2008,Israeletal2009} which returns 
-for each fish an estimate of the posterior probability that it belongs
-to the Southern or Northern DPS.
-
+In similar fashion, population assignment or, as it is often called in
+fisheries, ``genetic stock identification'' (GSI), can be carried out under a
+haploid model, using our definition of genotype categories. The model underlying
+GSI is nearly identical to the {\em structure} model described above, except that 1)
+{\em structure} assumes that the proportion of individuals from each component is
+equal, while in GSI that proportion is estimated, and 2) with {\em structure} we
+performed unsupervised clustering, while for GSI we used known samples from each
+DPS as ``baseline'' samples. We used the reference samples from the Sacramento and
+Klamath rivers as our baseline samples from the Southern and Northern DPSs,
+respectively. We assessed how well this baseline allowed self-assignment of the
+baseline samples using a leave-one-out procedure, and then we performed GSI on
+the remaining samples (bycatch samples and Eel River sample), using the
+expectation-maximization algorithm \citep{Dempsteretal1977} to maximize the likelihood. All analyses
+were done using the software {\em gsi\_sim} \citep{Andersonetal2008,Israeletal2009}, 
+which returns for each fish an estimate of the posterior probability that
+it belongs to the Southern or Northern DPS.
 
 Though it could be challenging to use our genotype categories, which have unknown inheritance properties,
-to infer related individuals (\ie to identify parent-offspring pairs, or full-siblings), it is possible
-to use the observed genotype categories to identify the same individual, multiply-sampled.  We developed a
-straightforward likelihood-based approach to identify genotypes from the same sample.  Let $\bp_\ell$ 
+to infer related individuals (\ie to identify parent-offspring pairs, or full-siblings), we 
+investigated whether it is possible to use the observed genotype
+categories to identify the same individual when it is sampled more than once.
+For this purpose, we developed a straightforward log-likelihood ratio statistic
+to discriminate pairs of genotypes from samples taken from the same individual
+green sturgeon and those taken from different individuals. We compared the
+distribution of the statistic in both simulated genetic assay data and observed
+assay data from pairs of samples known to be from the same fish, examining data
+from both DNA samples subjected to genotyping more than once and pairs of DNA samples from
+independent DNA extractions from tissue taken from the same individual.
+
+To derive our log-likelihood ratio statistic, let $\bp_\ell$ 
 be the frequencies of the genotype categories at locus $\ell$ in the DPS from which a pair of individuals
 originate.  For example, if four categories are 
 scored at locus $\ell$, then $\bp = (p_{\ell,1}, \ldots, p_{\ell,4})$, with $\sum_{k=1}^4 p_{\ell,k} = 1$.
@@ -516,7 +576,7 @@ individual is then
 To approximate the distribution of
 $\Lambda_{ij}$ under $K_{ij} = \mathrm{S}$ and $K_{ij} = \mathrm{U}$, we
 conducted Monte Carlo simulations using values of $\bp$ for the Northern and Southern DPSs obtained
-by counting genotyping categories scored on individuals assigned by {\sc structure} to
+by counting genotyping categories scored on individuals assigned by {\em structure} to
 the Northern DPS and Southern DPS
 clusters.  For the simulation of pairs and for the calculation
 of $P(y^{(i)}_\ell = g, y^{(i)}_\ell = h | K_{ij} = \mathrm{S}$) 
@@ -536,21 +596,18 @@ Northern DPS or the Southern DPS\@. Both the
 simulations and the pairwise comparisons of real fish were done using a custom-written
 script in the R programming language \citep{Rcore2015}.
 
-
-
 \section*{Results}
 
 \subsection*{Loci scored}
-Of the 96 SNP assays we originally developed, we found that 74 of them could be reliably scored 
-into genotype clusters. Of these, \Sexpr{num_loc_by_num_cat["2"]} were loci with two genotype
-categories, \Sexpr{num_loc_by_num_cat["3"]} with three, \Sexpr{num_loc_by_num_cat["4"]} with four,
-and \Sexpr{num_loc_by_num_cat["5"]} with five.  Of the 470 attempts made to genotype a DNA sample 
-on the four scoring development chips and chip~five, \Sexpr{num_60_locs_or_more} of those yielded scored genotype
-categories in at least 60 of the 74 loci. Inspection of the distribution of the number of scored 
-loci revealed that most sample types were consistently genotyped well 
-($\geq 60$ scored genotype categories)
-except for the egg samples from the Sacramento River (Fig.~\ref{fig:success-histos}).
 
+Of the 96 SNP assays developed, 74 of them could be reliably called into
+genotype clusters. Of these, 39 were loci with two genotype categories, 29 with
+three, 3 with four, and 3 with five. Of the 470 total DNA samples analyzed with
+these SNP assays, 413 (corresponding to 324 distinct green sturgeon, since some
+were genotyped more than once) yielded called genotype categories in at least 60
+of the 74 loci. Inspection of the distribution of the number of called loci
+revealed that only the egg samples from the Sacramento River consistently failed
+to genotype well (< 60 called assays; Figure~\ref{fig:success-histos}).
 
 \begin{figure}
 \begin{center}
@@ -564,10 +621,9 @@ Names as in Table~\ref{tab:samps}.  \label{fig:success-histos}}
 
 
 \subsection*{Analysis with {\em structure}}
-324 individuals had scored genotype categories at 60 or more loci, and were hence included in the analysis with 
-{\em structure.}  This analysis was a clustering analysis in which no prior information was given about the origin
-of the samples, even if that was known (as is the case with the reference samples.)  The posterior probability that each
-individual originated from one of the $K$ clusters is given in Figure~\ref{fig:distruct}.
+There were 324 individuals with genotype categories called at 60 or more loci, and were hence included in a clustering analysis with structure. 
+This analysis used no prior information about the origin of the samples, even for the reference samples. The posterior probability that each 
+individual originated from one of the K clusters is given in Figure~\ref{fig:distruct}. 
 %%%%%%
 \begin{figure*}
 \includegraphics[width = 0.92\textwidth]{../StructureArea/clump_and_distruct/final_pdf/BB_ds_Clumped_TopLabel_k002r001.pdf}~\raisebox{0.96ex}{$K = 2$} \\
@@ -582,39 +638,54 @@ no uncertainty. For $K=3$ and $K=4$ there is more noise, indicating that a model
 is not supported by the genetic data.\label{fig:distruct}}
 \end{figure*}
 %%%%%
-The results from {\em structure} show unambiguously that the model for population structure that is best supported by the data
-is one with $K=2$ clusters. By noting the clusters to which the reference samples are assigned it is clear that the clusters
-defined by structure coincide perfectly with the Northern and Southern DPSs of green sturgeon.  The bycatch consists of fish that
-are from both the Northern and Southern DPSs, with a greater proportion from the Southern DPS.  Likewise, it is clear that the 
-fish sampled from the Eel River belong to the Northern DPS.
+The results from structure show unambiguously that the model for population structure that is best supported by the 
+data is one with K = 2 genetic groups. By noting the groups to which the reference samples are assigned, it is clear 
+that these two groups coincide perfectly with the Northern and Southern DPSs of green sturgeon. In addition, it is 
+clear that the fish sampled from the Eel River belong to the Northern DPS.
+
 
 \subsection*{Population assignment with {\em gsi\_sim}}
-For performing GSI, we did not filter the data to remove individuals with fewer than 60 scored loci. The baseline sample from the Sacramento River consisted of \Sexpr{nrow(SouthBase)} individuals, many of which were egg samples that did not genotype well.  The baseline sample from the
-Klamath included \Sexpr{nrow(NorthBase)} fish.  Consistent with the {\em structure} results, self-assignment of fish in the baseline was very
-accurate.  All of the fish from the Klamath were self-assigned to the Northern DPS with all posterior probabilities $>0.9998$.  Likewise,
-all the Sacramento fish in the baseline were self-assigned to the Southern DPS except a single fish that was typed at only four loci.  All of the
-fish in the bycatch were assigned to the Northern or Southern DPS with posterior probabilities $>0.999$. The poor genotyping performance
-of the egg samples from the Sacramento River allowed us to investigate the effect of the number of genotypes scored on the confidence 
-in assignments (Fig.~\ref{fig:sacto-self-ass}).  
+For performing GSI, we did not filter the data to remove individuals with fewer
+than 60 called loci. The known-origin reference samples from the Sacramento
+River were from 150 individuals, many of which were egg samples that did not
+genotype well. The known-origin reference samples from the Klamath included 21
+fish. Consistent with the structure results, self-assignment of fish in the
+baseline was very accurate. All of the fish from the Klamath were self-assigned
+to the Northern DPS with posterior probabilities $> 0.999$. Likewise, all the
+Sacramento fish were self-assigned to the Southern DPS except a single fish that
+was typed at only four loci. All of the fish in the bycatch were assigned to the
+Northern or Southern DPS with posterior probabilities $> 0.999$. The poor
+genotyping performance of the egg samples from the Sacramento River allowed us
+to investigate the effect of the number of genotypes called on the confidence in
+assignments (Figure~\ref{fig:sacto-self-ass}).
+%%%%%%%%%%%
 \begin{figure}
 \includegraphics[width = \linewidth]{../outputs/self-ass-plot-crop.pdf}
 \caption{Relationship between number of loci score and the posterior probabilities of self-assignments 
 (using a leave-one-out procedure) of Sacramento River fish and eggs to
 the Southern DPS.  It is remarkable that the assignments are all correct apart from one fish with only four loci scored.  \label{fig:sacto-self-ass}}
 \end{figure}
-This reveals that, remarkably, a correct assignment can be made to DPS with high confidence
-even if as few as 10 SNPs were successfully scored, suggesting that our SNP markers will be capable
-of correctly assigning fish to DPS even if the tissues sampled from them are degraded or otherwise
-yield low-quality DNA.
+%%%%%%%%%%%%%
+This reveals that a correct assignment can be made to
+DPS with high confidence even if as few as 10 SNPs were successfully called,
+highlighting the genetic divergence between the two DPSs and suggesting that our
+SNP markers will be capable of correctly assigning fish to DPS even if the
+tissues sampled from them are degraded or otherwise yield low-quality DNA.
+
+The green sturgeon bycatch consists of fish that are from both the Northern and
+Southern DPSs, with a greater proportion from the Southern DPS. The bycatch was
+all recorded in either the Gulf of the Farallones or around the Columbia River
+plume, from Tillamook, OR to Grays Harbor, WA. The fish sampled in the southern
+area were almost all from the Southern DPS, whereas those in the northern area
+were a mixture of Southern and Northern DPS fish in nearly equal proportions
+(Figure XXXXXX).
+
 
 
 
 
 \subsection*{Individual identification}
-The Monte Carlo simulations reveal that the distribution of $\Lambda_{ij}$ for unrelated pairs
-is distinctly lower than it is for $K_{ij}=\mathrm{S}$.  This is true even when as many as 34 loci are
-missing in at least one of the members of the pair, leaving only 40 loci shared between the two 
-fish in the pair (Fig.~\ref{fig:self-id}{\em a}).
+Both the simulated (Fig.~\ref{fig:self-id}{\em a}) and observed (Fig.~\ref{fig:self-id}{\em b}) data 
 \begin{figure*}
 {\bf (a)}\\
 \includegraphics[width = \textwidth]{../outputs/lambda_densities-crop.pdf}\\
@@ -637,8 +708,14 @@ blue (SIDT) dots near $\Lambda_{ij} = -50$ in the Southern DPS are clearly due t
 in the data collection or genotyping process.
 \label{fig:self-id}}
 \end{figure*}
-Comparison of the $\Lambda_{ij}$ values across all pairs of genotypes show unambiguous identification of 
-samples from the same individual (Fig.~\ref{fig:self-id}{\em b})
+revealed completely non-overlapping distributions of the likelihood ratio
+statistic for pairs of samples from unique fish and pairs from the same
+individual green sturgeon (data not shown). This is true even when data from as
+many as 34 of the SNP assays are missing in at least one of the members of the
+pair, leaving only data from 40 assays shared between the two. This comparison
+demonstrated unambiguous identification of samples from the same individual and
+also identified several pairs of samples that were from the same green sturgeon
+but were not known to be so beforehand.
 
 
 
@@ -650,29 +727,84 @@ in the Region's handling of the data or ours in the lab.}
 
 
 \section*{Discussion}
-We are pleased to report that our panel of 74 \snptype{} assays for green sturgeon provides a cost-effective
-and reliable method for identifying green sturgeon from the two DPSs on the West Coast.  These SNPs provide
-substantially better resolution than panels of microsatellites that have been used previously \citep{Israeletal2009}
-and are considerably less expensive and less labor intensive to genotype and score.  Additionally, they provide
-a means to unambiguously identify individuals that have been sampled more than once.  This may prove useful for
-the study of ocean-caught green sturgeon.
 
-We have not analyzed the occurrence of fish from the different DPS in different fisheries
-as the confidentiality concerns of the bycatch data currently preclude that.  We will, however,
-provide the assignments to DPS of each bycaught individual to The Region.
+We report here the development of a panel of 74 \snptype{} genotyping assays
+that target variable regions of the green sturgeon genome and provide
+informative data for several applications. We show that these molecular genetic
+assays provide data that can be used with standard genetic stock identification
+(GSI) methods to accurately assign all individual green sturgeon to either the
+Northern or the Southern Distinct Population Segment (DPS). We then apply this
+GSI approach to categorize green sturgeon encountered as bycatch in groundfish
+fisheries into DPS of origin and determine that fish sampled in the southern
+fishery area, the Gulf of the Farallones, are almost entirely from the Southern
+DPS, whereas those in the northern area, surrounding the Columbia River plume,
+are a nearly equal mix of fish from the two DPSs. Additionally, we show that
+green sturgeon recently encountered in the Eel River are unambiguously from the
+Northern DPS. These fish were apparently reproducing, which, if accurate,
+indicates a range expansion for the species. Finally, we show how these genetic
+assays allow the individual identification of green sturgeon, providing accurate
+identification of tissue samples from the same fish sampled multiple times, even
+when only a small fraction of the assays are successfully genotyped. This bodes
+well for their use in forensic or other applications where DNA quality may be
+low.
+
+As green sturgeon have experienced a recent whole genome duplication, all such
+assays interrogate more than one locus (region of the genome) and do not provide
+typical genotype data, with variant data from the maternal and paternal
+chromosomes only. Rather, these assays interrogate at least two locations in the
+genome and return data from at least four gene copies (at least two from both
+the maternal and paternal chromosomes). It is not possible to discriminate the
+different gene copies and assign them to locus, so we developed an heuristic
+method for categorizing the relative fluorescence intensity data into ``genotype
+categories''. These categories are defined by clustering position on the two
+dimensional graph and are intended to represent the five potential genotype
+combinations of two identical loci with the same two alleles present. However,
+we do not know the exact underlying inheritance of these variants and how they
+correspond to these genotype
+categories and therefore consider each one as an
+individual ``phenotypic'' character. As such, this method does not produce data
+suitable for pedigree reconstruction or other such applications where an
+explicit genetic model is necessary. Additional molecular genetic and
+methodological research will be necessary to develop markers and analytical
+methods appropriate for applications that must assume Mendelian segregation or
+otherwise employ an explicit genetic model.
+
+In summary, we described here a cost-effective and reliable method for
+identifying green sturgeon from the two recognized DPSs. These SNPs provide
+substantially better resolution than panels of microsatellites that have been
+used previously for green sturgeon \citep{Israeletal2009} and are considerably
+less expensive and less labor-intensive to genotype and analyze. Additionally,
+they provide a means to unambiguously identify individuals that have been
+sampled more than once. This may prove useful for the study of ocean-caught
+green sturgeon. In addition, the data strongly support the delineation of fish
+from the Klamath and Sacramento River basins into two separate DPSs. Further
+research, requiring samples from fish known to have originated in the Rogue
+River (\ie juveniles) will be required to determine whether these fish are
+similarly distinct and whether they are appropriately lumped into the Northern
+DPS with Klamath River green sturgeon.
 
 
 
 
 \section*{Acknowledgments}
-We are grateful to \ldots
+We are grateful to Phaedra Doukakis, Melissa Neuman, and Susan Wang (NMFS West
+Coast Regional Office) for engaging us in this project with the goal of
+identifying green sturgeon bycatch, Toz Soto (Karuk Tribe) and Bill Poytress (US
+Fish and Wildlife Service) for providing samples of juvenile green sturgeon from
+the Klamath and Sacramento rivers, respectively, Vanessa Apkenas and Cassie
+Colombus (Molecular Ecology and Genetic Analysis Team, Southwest Fisheries
+Science Center) for assistance with laboratory analyses. Joshua Strange
+(Stillwater Sciences) and Stephen Kullman (Wiyot Tribe) provided samples from
+fish encountered in the Eel River and staff from the NMFS West Coast Fisheries
+Observer Program provided samples from fishery bycatch.
+
 %%%%%%%%%%%%%%%% END MAIN BODY
 \bibliographystyle{men}
 {\footnotesize
 \bibliography{sturgeon-fluidigm}}\
 
 %% Down at the end, we use the .tex file to typeset a one-column version
-<<typeset-one-column, include=FALSE, cache=FALSE>>=
+<<typeset-one-column, include=FALSE, cache=FALSE, eval=FALSE>>=
 library(stringr)
 library(dplyr)
 tex <- readLines("tex/sturgeon-fluidigm-main.tex")
