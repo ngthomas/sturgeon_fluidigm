@@ -6,7 +6,14 @@ if(!file.exists("outputs")) dir.create("outputs")
 # read in the full repository information:
 repo <- tbl_df(read.table("data/meta/AM001_AM006.tab", sep = "\t", header = T, stringsAsFactors = FALSE))
 
-# read in the bycatch IDs info:
+
+
+
+
+
+# read in the bycatch IDs info. is just a data frame of the NMFS_DNA_IDs
+# that correspond to Bycatch fish from the region and also gives information
+# about the duplicate tissues they sent us.
 bycid <- readRDS("data/meta/bycatch_IDS.rds")
 
 # read in the sheet of data about the samples we are using
@@ -19,7 +26,7 @@ samsheet <- read.csv("data/meta/sample_sheet.csv", stringsAsFactors = FALSE)
 if(FALSE) {  # this doesn't typically get re-run because I made the file to use in the future
   sams <- repo %>% 
     filter(!(NMFS_DNA_ID %in% bycid$Duplicate_Tissue)) %>%  # toss out one of the duplicates of each duplicated one
-    filter(!(NMFS_DNA_ID %in% c("AM000193", "AM000260", "AM000263"))) %>%   # bycatch individuals without proper key back to the Region's data base
+    filter(!(NMFS_DNA_ID %in% c("AM000193"))) %>%   # bycatch individuals without any good meta-data in the Region's data base
     filter(NMFS_DNA_ID != "AM000474") %>%    # individual for which proper meta data are not available
     mutate(
       category = ifelse(WATERSHED %in% c("Sacramento River", "Klamath River"), 

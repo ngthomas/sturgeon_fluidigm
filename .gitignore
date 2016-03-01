@@ -4,8 +4,7 @@
 
 outputs
 stuff_from_crandall
-data/meta/private.xls
-data/meta/private2.xls
+data/meta/private*
 
 .DS_Store
 

@@ -31,10 +31,12 @@ before you begin, you should study this carefully.
     ```
     
 2. __Metadata__: Each of the genetic samples was received with a variety of information with them.
-  * `data/AM001_AM006.tab` is a tab-delimited dump of all the SWFSC repository information for all the samples that appear in the analysis. The data were exported with both marine and freshwater sample information into this file by Cassie Columbus.
+  * `data/meta/AM001_AM006.tab` is a tab-delimited dump of all the SWFSC repository information for all the samples that appear in the analysis. The data were exported with both marine and freshwater sample information into this file by Cassie Columbus.
+  * `data/meta/sample_sheet.csv` is a CSV file that just shows which category each fish is in, keyed by
+  its NMFS_DNA_ID.
   * `data/meta/acipenser.mer` holds the standard meta data attached to the samples in the SWFSC repository, but is a deprecated file and will be removed eventually.
-  * `data/meta/private.xls` does not live with the repository.  These are data such as geographic locations of bycatch that are considered confidential.  So, if you want to reproduce _all_ of the work here, you need to get that file from Carlos and put it in the correct location in the repository (and be sure not to commit  it --- note that it is gitignored.)
-  * `data/meta/bycatch_IDS.rds` holds the confidential bycatch data summarized sufficiently that it is no longer considered confidential, and is used in analyses and summaries here.  It contains the `NMFS_DNA_ID`s of the fish that were from the bycatch, and it includes sampling years and locations (which fall into 9 different general locations). It also includes information about which `NMFS_DNA_ID`s contain tissue that was sampled twice from the same fish.  The column of `NMFS_DNA_ID` is what should be used for most analyses, and the duplicates will be used for matching genotypes verifications.
+  * Files starting with `data/meta/private` do not live with the repository.  These are data such as geographic locations of bycatch that are considered confidential.  So, if you want to reproduce _all_ of the work here (specifically the plots of sampling locations), you need to ask Carlos to run the analyses for you because he is the only one that has those files.  Note that `private-green-sturgeon-reconciled.xlsx` is what we use to make the map with the lat-long locations of bycaught fish.
+  * `data/meta/bycatch_IDS.rds` holds the IDs of fish in the bycatch data. It is no longer considered confidential in this form because it ain't nothing but the IDs.  It is used in analyses and summaries here.  It contains the `NMFS_DNA_ID`s of the fish that were from the bycatch. It also includes information about which `NMFS_DNA_ID`s contain tissue that was sampled twice from the same fish.  The column of `NMFS_DNA_ID` is what should be used for most analyses, and the duplicates will be used for matching genotypes verifications.
 3. __Genetic Data__: The genetic data that appear in this repo are of two different varieties.  
   * The first are the relatively "raw" data off the Fluidigm machine. These data are intensity data that have not been normalized using the negative control values.  In order to access these raw values in a typical analysis, you have to contact Fluidigm and ask for an access code that lets you access the raw data. There are four chips of these sorts of data that were used for training our scoring procedure. These are "Detailed Table" results from Fluidigm and they include the automatic genotype calls (which are intended for diploids, and hence not very reliable) and the intensities of the different dye-sets. They are located in `data/training_chips`.  Specifically they are:
     - `data/training_chips/1381905043_raw.csv`
@@ -50,6 +52,11 @@ The analyses are done in a series of R scripts.  We have all the necessary scrip
 order in the directory `./R-main/`.  Each of them should be run with the current
 working directory in R set to be the top level of the repository. (i.e. the directory
 that includes the subdirectory `R-main`). Here we briefly describe what each script does:
+
+1. `R-main/00-meta-data-summaries.R`: Basically just count up how many individuals are in each
+category of sample and write out a table.  This also loads the "sample sheet" and the bycatch 
+IDs which are used later on, too.  There is some code here that shows how the sample sheet
+was created.
 
 1. `R-main/01-develop-chip-scoring.R`:  This script operates on the data that are found in the `*_raw.csv` files in `data/training_chips`. The script reads the data in and then creates 4 pages of plots.  Each page has 24 panels and each panel has the data from one locus across the four chips. Line segments connect the same individual typed on different plates.  This helps us identify reliable clusters. The outputs from this script are the PDF files of the figures:
   - `outputs/plate_x_y1.pdf`
