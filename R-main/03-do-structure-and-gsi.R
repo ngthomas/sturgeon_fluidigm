@@ -184,8 +184,8 @@ if(ReDoStructureRuns == TRUE) {
 # into the baseline (juvies and adults).
 
 
-# only take individuals with at least 60 loci:
-ForGSI <- AllOfEm[complete.cases(AllOfEm), ]
+# take all the individuals:
+ForGSI <- AllOfEm[complete.cases(AllOfEm), ]  # this just removed one individual that is all NAs---apparently was not typed at all
   
   
 NorthBase <- ForGSI %>%
@@ -259,3 +259,13 @@ selfy_plot <- ggplot(selfies_for_plot, aes(x = NumL, y = SouthScore, colour = As
 ggsave(selfy_plot, filename = "outputs/self-ass-plot.pdf", width = 6, height = 4)
 
 system("pdfcrop outputs/self-ass-plot.pdf")
+
+## Now let us also read in the mixture results and save them as an rds.
+mixture_ass <- read.table("outputs/pop_pofz_full_em_mle.txt", header = T, stringsAsFactors = FALSE) %>%
+  tbl_df
+
+# then make a column for which DPS they are assigned to and write it
+mixture_ass %>%
+  mutate(DPS_gsi_sim = ifelse(SouthernDPS > 0.5, "south", "north")) %>%
+  saveRDS(file = "outputs/gsi-sim-DPS-assignments-of-bycatch.rds")
+  

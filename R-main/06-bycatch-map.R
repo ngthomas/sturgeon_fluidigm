@@ -10,32 +10,39 @@ library(ggplot2)
 dps_df <- readRDS("outputs/structure_dps_assigns.rds") %>%
   rename(NMFS_DNA_ID = full.name)
 
+# get the gsi_sim assignments too
+gsi_dps <- readRDS("outputs/gsi-sim-DPS-assignments-of-bycatch.rds") %>%
+  rename(NMFS_DNA_ID = IndivName)
+
 # get the sample sheet
 sam <- read.csv("data/meta/sample_sheet.csv", stringsAsFactors = FALSE) %>% tbl_df
 
-# get the lat long data (not on repo)
-lat_long <- readxl::read_excel("data/meta/private.xls", sheet = 2, skip = 4) %>%
-  select(TISSUE_SAMPLE_ID, NMFS_DNA_ID, RETRIEVE_LAT, RETRIEVE_LONG)
+# get the meta data (not on repo)
+tmp <- readxl::read_excel("data/meta/private-green-sturgeon-reconciled.xlsx", sheet = 1, skip = 0) 
+region_meta <- tmp[-1, names(tmp) != ""]  %>%  # messy excel file---have to rip of extra unnamed columns, and the first row has nada in it
+  filter(!is.na(NMFS_DNA_ID))
 
 
-# while we are at it, get all the meta data for the bycatch:
-all_meta <- readxl::read_excel("data/meta/private.xls", sheet = 2, skip = 4)
-AssigAll <- sam %>%
-  filter(collection_location == "Bycatch") %>%
-  select(NMFS_DNA_ID) %>%
+# now, before we do anything else we are going to join to each of these assignents the reconciled meta
+# data file from the region, so carlos can send it back to them.
+Results4Reg <- gsi_dps %>%
   left_join(dps_df) %>%
-  left_join(all_meta)
-write.csv(AssigAll, file = "outputs/bycaught_sturgeon_with_DPS.csv")
+  rename(DPS_structure = DPS,
+         SouthernDPS_prob_gsi_sim = SouthernDPS,
+         NorthernDPS_prob_gsi_sim = NorthernDPS) %>%
+  left_join(., region_meta)
 
-# now put these together to get just the bycatch samples
-DF <- sam %>%
-  filter(collection_location == "Bycatch") %>%
-  select(NMFS_DNA_ID) %>%
-  left_join(dps_df) %>%
-  left_join(lat_long) %>%
-  filter(!is.na(RETRIEVE_LAT), !is.na(RETRIEVE_LONG))  
+write.csv(Results4Reg, file = "outputs/private-dps-assignments-with-meta-data-for-region.csv", row.names = FALSE)
 
-# note, we don't have lat-longs for the recently received samples
+
+
+# now put gsi_dps together with the region's lat-long data
+DF <- region_meta %>%
+  left_join(gsi_dps, .) %>%
+  filter(!is.na(RETRIEVE_LAT), !is.na(RETRIEVE_LONG))  %>%
+  select(NMFS_DNA_ID:DPS_gsi_sim, DISSECTION_BARCODE_NMFS, RETRIEVE_LAT, RETRIEVE_LONG) %>%
+  rename(DPS = DPS_gsi_sim)
+
 
 # now we just have to map those
 # look at our limits:
@@ -52,26 +59,29 @@ sf1 <- getRgshhsMap(gshhs.f.b, xlim = c(-128, -120), ylim = c(36, 48)) %>%
 
 
 # plot up a map at full large scale  
-set.seed(7)
+# make a column of jittered lats and longs.  We do this instead of geom_jitter because
+# we don't want things to jitter onto land and we want the jitter to be consistent
+# between the different "zoom" levels of each plot.
+set.seed(5)
+DF2 <- DF %>%
+  mutate(jitlat = RETRIEVE_LAT + runif(n = nrow(DF), min = -0.01, max = 0.01),
+         jitlong = RETRIEVE_LONG - runif(n = nrow(DF), min = 0, max = 0.02))
+
+
 g <- ggplot() + geom_polygon(data = sf1, aes(x=long, y = lat, group = group), fill = "grey80") + 
   coord_fixed(1.3) + 
-  geom_point(data = DF, mapping = aes(x = RETRIEVE_LONG, 
-                                       y = RETRIEVE_LAT, 
+  geom_point(data = DF2, mapping = aes(x = jitlong, 
+                                       y = jitlat, 
                                        colour = DPS), 
-              alpha = 0.7,
-             position=position_jitter(w = 0.05, h = 0.05)) +
+              alpha = 0.6) +
+  scale_colour_manual(values = c(north = "red", south = "blue")) +
+  xlab("Latitude") +
+  ylab("Longitude") +
   theme_bw()
 
 
 # now, we want to make two sub-figures that are blow-ups of the two
 # obvious regions of interest.  We will make those without the color guide
-
-
-
-
-
-
-
 # then print them out on the same pages via grid
 long_skinny <- g + theme(legend.position="top")
 
@@ -138,3 +148,5 @@ multiplot(plotlist = list(long_skinny, wa_coast, ca_coast),
           widths = unit(c(1,1), "null"))
 dev.off()
 system("cd outputs; pdfcrop bycatch_map.pdf")
+
+

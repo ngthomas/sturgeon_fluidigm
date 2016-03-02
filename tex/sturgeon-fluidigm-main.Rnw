@@ -679,7 +679,12 @@ plume, from Tillamook, OR to Grays Harbor, WA. The fish sampled in the southern
 area were almost all from the Southern DPS, whereas those in the northern area
 were a mixture of Southern and Northern DPS fish in nearly equal proportions
 (Figure XXXXXX).
-
+\begin{figure*}
+\begin{center}
+\includegraphics[width = \textwidth]{../outputs/bycatch_map-crop.pdf}
+\end{center}
+\caption{Gotta add a caption.}
+\end{figure*}
 
 
 
