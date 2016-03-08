@@ -30,7 +30,7 @@ dps_df <- so %>%
 saveRDS(dps_df, file = "outputs/structure_dps_assigns.rds")
 
 
-# now, we stick DPS designations onto the genotype categories and count the up
+# now, we stick DPS designations onto the genotype categories and count them up
 geno <- readRDS("outputs/genotype_from_five_chips.rds")
 
 # first filter to just the individuals 
@@ -281,6 +281,16 @@ apairs2 <- allpairs %>%
 apairs2 %>% filter(LLR > 0, name1 != name2) %>% as.data.frame()
 
 
+# now, we are going to want to save for later the list of all the 
+# samples not known to be duplicates
+apairs2 %>%
+  filter(LLR > 15)  %>%  # looking at the graph shows that this clearly gets the true pairs
+  filter(pairtype == "NKS") %>% 
+  group_by(name1, name2) %>%
+  summarise(num_times = n()) %>%
+  ungroup %>%
+  saveRDS("outputs/nks_matching_pairs")
+
 
 greensmear <- apairs2 %>% 
   filter(pairtype == "NKS", LLR < 0)
@@ -310,4 +320,4 @@ ggsave(g, filename = "outputs/obs-self-id-logls.pdf", width = 10, height = 3)
 system("pdfcrop outputs/obs-self-id-logls.pdf")
 
 # write out the_num_pairs for future reference
-saveRDS(the_num_pairs, filename = "outputs/the_num_pairs.rds")
+saveRDS(the_num_pairs, file = "outputs/the_num_pairs.rds")

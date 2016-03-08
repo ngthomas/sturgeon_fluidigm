@@ -47,7 +47,7 @@ plate_loc_counts <- plate_tmp %>%
   group_by(plate, collection_location) %>%
   tally %>%
   tidyr::spread(collection_location, n) %>%
-  setNames(c("Chip", "Bycatch", "Klamath", "Sacramento")) %>%
+  rename(Chip = plate, Klamath = `Klamath River`, Sacramento = `Sacramento River`) %>%
   select(Chip, Sacramento, Klamath, Bycatch)
 
 # this is a table of how many fish from each location were on each plate

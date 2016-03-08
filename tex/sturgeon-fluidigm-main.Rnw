@@ -118,7 +118,7 @@ knitr::opts_knit$set(concordance = TRUE)
 % a knitr chunk to evaluate the code needed to produce variables and figures we need
 % in this section
 <<set-flags-and-run-R-main-scripts, include=FALSE, cache = FALSE>>=
-ReDoStructureRuns = FALSE
+ReDoStructureRuns <- FALSE
 
 # these scripts write output to the outputs directory
 # and can be commented out for faster compiling of the paper
@@ -127,6 +127,7 @@ source("R-main/00-meta-data-summaries.R")
 #source("R-main/01.5-score-plate-five.R")
 source("R-main/03-do-structure-and-gsi.R")
 #source("R-main/05-indiv-id-sims.R")
+source("R-main/06-bycatch-map.R")
 @
 
 

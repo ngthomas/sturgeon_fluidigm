@@ -22,7 +22,7 @@ tmp <- readxl::read_excel("data/meta/private-green-sturgeon-reconciled.xlsx", sh
 region_meta <- tmp[-1, names(tmp) != ""] # messy excel file---have to rip of extra unnamed columns, and the first row has nada in it
 
 
-
+#### Some Reporting and Output Stuff First  ####
 # now, before we do anything else we are going to join to each of these assignents the reconciled meta
 # data file from the region, so carlos can send it back to them.
 Results4Reg <- gsi_dps %>%
@@ -44,7 +44,28 @@ Res4Reg_final <- left_join(Results4Reg, bycid_rev)
 
 write.csv(Res4Reg_final, file = "outputs/private-dps-assignments-with-meta-data-for-region.csv", row.names = FALSE)
 
+## Now, while we are at it, we might as well get a summary of the 
+## matching samples that were not known as matching beforehand.
+nks_matchers <- readRDS("outputs/nks_matching_pairs") 
 
+## make a data frame that has the matching pair followed by three NAs so that we 
+## can left_join other stuff onto them
+nksv <- nks_matchers %>% 
+  select(name1, name2) %>%
+  as.matrix %>%
+  t() %>% 
+  rbind(NA, NA, NA) %>%
+  as.vector
+  
+nksdf <- data.frame(NMFS_DNA_ID = nksv, stringsAsFactors = FALSE) %>%
+  left_join(region_meta %>% filter(!is.na(NMFS_DNA_ID)))
+
+write.csv(nksdf, file = "outputs/previously-unannounced-matching-genotypes-for-region.csv", 
+          na = "", row.names = FALSE)
+
+
+
+#### Now, start making maps ####
 
 # now put gsi_dps together with the region's lat-long data
 DF <- region_meta %>%
