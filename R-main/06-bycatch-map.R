@@ -19,8 +19,8 @@ sam <- read.csv("data/meta/sample_sheet.csv", stringsAsFactors = FALSE) %>% tbl_
 
 # get the meta data (not on repo)
 tmp <- readxl::read_excel("data/meta/private-green-sturgeon-reconciled.xlsx", sheet = 1, skip = 0) 
-region_meta <- tmp[-1, names(tmp) != ""]  %>%  # messy excel file---have to rip of extra unnamed columns, and the first row has nada in it
-  filter(!is.na(NMFS_DNA_ID))
+region_meta <- tmp[-1, names(tmp) != ""] # messy excel file---have to rip of extra unnamed columns, and the first row has nada in it
+
 
 
 # now, before we do anything else we are going to join to each of these assignents the reconciled meta
@@ -30,9 +30,19 @@ Results4Reg <- gsi_dps %>%
   rename(DPS_structure = DPS,
          SouthernDPS_prob_gsi_sim = SouthernDPS,
          NorthernDPS_prob_gsi_sim = NorthernDPS) %>%
-  left_join(., region_meta)
+  full_join(region_meta, .)
 
-write.csv(Results4Reg, file = "outputs/private-dps-assignments-with-meta-data-for-region.csv", row.names = FALSE)
+# and before we send that back we will want to make a note of the duplicated
+# samples, because the duplicate tisssues don't get DPS assignments (because
+# their other half has it.)
+bycid_rev <- readRDS("data/meta/bycatch_IDS.rds") %>%
+  filter(!is.na(Duplicate_Tissue)) %>%
+  rename(Duplicated_Tissue_Of = NMFS_DNA_ID,
+         NMFS_DNA_ID = Duplicate_Tissue)
+
+Res4Reg_final <- left_join(Results4Reg, bycid_rev)
+
+write.csv(Res4Reg_final, file = "outputs/private-dps-assignments-with-meta-data-for-region.csv", row.names = FALSE)
 
 
 
