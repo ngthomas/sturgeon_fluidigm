@@ -15,20 +15,25 @@ before you begin, you should study this carefully.
   
   Then you should ensure that you have R (version > 3.2) and all the R libraries that we use:
   
-  MIGHT NEED TO PROVIDE PACKAGE VERSION 
+  Get all the R packages that you need.  Last I checked these were:
     ```r
-    install.packages(
-    c("MASS", 
-      "dplyr", 
-      "ggplot2", 
-      "grid", 
-      "gridExtra", 
-      "plyr", 
-      "reshape2", 
-      "scales", 
-      "stringr"
-    ))
+    needed_packages <- c(
+        "plyr",
+        "dplyr",
+        "stringr",
+        "reshape2",
+        "ggplot2",
+        "RColorBrewer",
+        "Rrunstruct",
+        "lazyeval",
+        "maps",
+        "mapdata",
+        "maptools",
+        "grid"
+    )
     ```
+    But, you should check the file `./R/load-packages.R` for the latest.  That file also has a code snippet in it that
+    will let you download and install all the needed packages in a few lines of R code.
     
 2. __Metadata__: Each of the genetic samples was received with a variety of information with them.
   * `data/meta/AM001_AM006.tab` is a tab-delimited dump of all the SWFSC repository information for all the samples that appear in the analysis. The data were exported with both marine and freshwater sample information into this file by Cassie Columbus.
