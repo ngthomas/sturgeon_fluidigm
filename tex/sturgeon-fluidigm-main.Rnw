@@ -122,10 +122,10 @@ ReDoStructureRuns <- FALSE
 
 # these scripts write output to the outputs directory
 # and can be commented out for faster compiling of the paper
-source("R-main/00-meta-data-summaries.R")
-#source("R-main/01-develop-chip-scoring.R")
-#source("R-main/01.5-score-plate-five.R")
-source("R-main/03-do-structure-and-gsi.R")
+source("R-main/01-meta-data-summaries.R")
+#source("R-main/02-develop-chip-scoring.R")
+#source("R-main/03-score-plate-five.R")
+source("R-main/04-do-structure-and-gsi.R")
 #source("R-main/05-indiv-id-sims.R")
 source("R-main/06-bycatch-map.R")
 @
