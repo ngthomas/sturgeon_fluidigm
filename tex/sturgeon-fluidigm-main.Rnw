@@ -725,12 +725,6 @@ but were not known to be so beforehand.
 
 
 
-\textcolor{red}{Note, there seems to be an error in the duplicate samples page in the spreadsheet.  Namely, AM000120 and AM000149 are
-clearly (from their genetic data) the same fish as are AM000131 and AM000137, but the sample information in the
-spreadsheet says that AM000120 and AM000131 are two tissues samples from the same fish, 
-and that AM000137 and AM000149 are the same.  There must have been a small mixup somewhere either
-in the Region's handling of the data or ours in the lab.}
-
 
 \section*{Discussion}
 

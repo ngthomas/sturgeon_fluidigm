@@ -27,6 +27,8 @@ if(FALSE) {  # this doesn't typically get re-run because I made the file to use 
   sams <- repo %>% 
     filter(!(NMFS_DNA_ID %in% bycid$Duplicate_Tissue)) %>%  # toss out one of the duplicates of each duplicated one
     filter(!(NMFS_DNA_ID %in% c("AM000193"))) %>%   # bycatch individuals without any good meta-data in the Region's data base
+    filter(!(NMFS_DNA_ID %in% c("AM000196"))) %>%  # third tissue sample from the same bycatch indiv.  Toss it.
+    filter(!(NMFS_DNA_ID %in% c("AM000408"))) %>%  # duplicate tissue from a non-bycatch individual
     filter(NMFS_DNA_ID != "AM000474") %>%    # individual for which proper meta data are not available
     mutate(
       category = ifelse(WATERSHED %in% c("Sacramento River", "Klamath River"), 
@@ -48,7 +50,7 @@ if(FALSE) {  # this doesn't typically get re-run because I made the file to use 
 
   
   # write that out 
-  write.csv(sams, file = "data/meta/sample_sheet.csv")
+  write.csv(sams, file = "data/meta/sample_sheet.csv", row.names = FALSE)
 }
 
 if(FALSE) {

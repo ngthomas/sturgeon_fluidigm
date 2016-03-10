@@ -44,25 +44,33 @@ Res4Reg_final <- left_join(Results4Reg, bycid_rev)
 
 write.csv(Res4Reg_final, file = "outputs/private-dps-assignments-with-meta-data-for-region.csv", row.names = FALSE)
 
-## Now, while we are at it, we might as well get a summary of the 
-## matching samples that were not known as matching beforehand.
-nks_matchers <- readRDS("outputs/nks_matching_pairs") 
 
-## make a data frame that has the matching pair followed by three NAs so that we 
-## can left_join other stuff onto them
-nksv <- nks_matchers %>% 
-  select(name1, name2) %>%
-  as.matrix %>%
-  t() %>% 
-  rbind(NA, NA, NA) %>%
-  as.vector
+## In our first pass through these data we found a handful of matching samples
+## amongst the bycatch that we were not told by the Region were duplicately sampled
+## tissues.  I used the following lines to grab the meta-data for those individuals
+## and discover that those pairs were all sampled at the exact same time and were the
+## same size, so clearly they were just duplicate tissues from the same individual and
+## I updated that accordingly.
+if(FALSE) {
+  ## Now, while we are at it, we might as well get a summary of the 
+  ## matching samples that were not known as matching beforehand.
+  nks_matchers <- readRDS("outputs/nks_matching_pairs") 
   
-nksdf <- data.frame(NMFS_DNA_ID = nksv, stringsAsFactors = FALSE) %>%
-  left_join(region_meta %>% filter(!is.na(NMFS_DNA_ID)))
-
-write.csv(nksdf, file = "outputs/previously-unannounced-matching-genotypes-for-region.csv", 
-          na = "", row.names = FALSE)
-
+  ## make a data frame that has the matching pair followed by three NAs so that we 
+  ## can left_join other stuff onto them
+  nksv <- nks_matchers %>% 
+    select(name1, name2) %>%
+    as.matrix %>%
+    t() %>% 
+    rbind(NA, NA, NA) %>%
+    as.vector
+  
+  nksdf <- data.frame(NMFS_DNA_ID = nksv, stringsAsFactors = FALSE) %>%
+    left_join(region_meta %>% filter(!is.na(NMFS_DNA_ID)))
+  
+  write.csv(nksdf, file = "outputs/previously-unannounced-matching-genotypes-for-region.csv", 
+            na = "", row.names = FALSE)
+}
 
 
 #### Now, start making maps ####
