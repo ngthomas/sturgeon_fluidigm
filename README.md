@@ -85,4 +85,26 @@ After those outputs came out, they were used to develop the scoring methodology 
 
 
 
-2. `R-main/03-score-plate-five.R` describe describe
+2. `R-main/03-score-plate-five.R`: This file shows the sort of workflow that is adopted to score chips beyond the training chips (specifically looking at how we score chip #5).  It shows the workflow for plotting figures of the raw intensity data for the training chips and for chip 5 together on the same plots, then it reads in the scored version of chip 5.  This scored version of the plate is the output from the Fluidigm Software after you use the software to manually score the individuals at each locus.  The scored file is saved at `./data/more_chips/1382136064_scored.csv`.  The header on it looks like the following, in case that helps people to understand what format/type of output from the Fluidigm software it is:
+
+  ```
+  Chip Run Info,C:\Users\biopipe\Desktop\Sturgeon5rr_SNPtype_1382136064\ChipRun.bml,1382136064,96.96 (138x),,ROX,FAM-MGB : VIC-MGB,11/5/2015 3:10:49     PM,00:01:22,EP1-50017
+  Application Version,3.1.3
+  Application Build,20120816.1511
+  Export Type,Detailed Table Results,Standard
+  Number of Combined Chip Runs,1,9216
+  Confidence Threshold,65.00
+  Normalization Method,NTC Normalization
+  Allele Probe Type Mapping,Allele X,FAM-MGB
+  Allele Probe Type Mapping,Allele Y,VIC-MGB
+  Allele Axis Mapping,Allele X,X
+  Allele Axis Mapping,Allele Y,Y
+  ```
+  
+  The rest of the script just converts those scores from the Fluidigm software into call of the genotype categories we have defined at these loci. Then it combines chip 5 with the training chips and saves the resulting data frame into `./outputs/genotype_from_five_chips.rds`.  Subsequently the script analyzes the patterns of missing data and creates the plot `outputs/successful-assay-histogram-crop.pdf`
+
+1. `R-main/04-do-structure-and-gsi.R`:  This script creates a STRUCTURE input file from the data and then run STRUCTURE on it using the slg_pipe commands and programs in the directory StructureArea.  Then it runs CLUMP and DISTRUCT on the output and creates the distruct plots for the paper and writes out the output.  Then it runs `gsi-sim` on the bycatch data too.  
+
+1. `R-main/05-indiv-id-sims.R`: Does the simulations of the log-likelihood ratio for individual identification, and then it computes those log-likelihood ratios for all pairs of fish genotypes.
+
+1. `R-main/06-bycatch-map.R`: Creates the maps of the bycatch fish.  

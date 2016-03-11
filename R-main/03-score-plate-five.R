@@ -106,10 +106,12 @@ g <- ggplot(tmp, aes(x = `Number of assays with called genotype categories`, fil
 ggsave(g, filename = "outputs/successful-assay-histogram.pdf", width = 6, height = 6)
 
 system("pdfcrop outputs/successful-assay-histogram.pdf")
-#### Count up  discordant pairs ##### This is not completed yet, but the function works nicely.
 
+
+#### Count up  discordant pairs:  I did this but don't report on it in the paper. ##### 
 boing <- count_discordant_genotype_cats(Dat.K)
 
-# now, I really need to see how things change when we toss individuals that are missing more than 10 genotype calls.
+# now, I could see how things change when we toss individuals that are missing more than 10 genotype calls, but I haven't done that yet.
+
 
 

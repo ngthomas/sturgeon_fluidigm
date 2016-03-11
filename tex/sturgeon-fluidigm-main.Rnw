@@ -118,7 +118,7 @@ knitr::opts_knit$set(concordance = TRUE)
 % a knitr chunk to evaluate the code needed to produce variables and figures we need
 % in this section
 <<set-flags-and-run-R-main-scripts, include=FALSE, cache = FALSE>>=
-ReDoStructureRuns <- FALSE
+ReDoStructureRuns <- FALSE  # if you haven't yet run this with TRUE, then set it to TRUE.  If so, set to FALSE for faster file compile times.
 
 # these scripts write output to the outputs directory
 # and can be commented out for faster compiling of the paper
