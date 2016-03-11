@@ -91,11 +91,16 @@ range(DF$RETRIEVE_LONG)
 
 
 # let us get some hires map data. see http://eriqande.github.io/2014/12/17/compare-map-resolutions.html
-if (!rgeosStatus()) gpclibPermit()
-gshhs.f.b <- "/Users/eriq/Maps/gshhg-bin-2.3.3/gshhs_f.b"
-sf1 <- getRgshhsMap(gshhs.f.b, xlim = c(-128, -120), ylim = c(36, 48)) %>%
-  fortify()
-
+# This is no longer executed, because I have saved sf1 into an RDS with the repository
+# but I leave the code here so someone can see what I did in this step to make that RDS.
+if(FALSE) {
+  if (!rgeosStatus()) gpclibPermit()
+  gshhs.f.b <- "/Users/eriq/Maps/gshhg-bin-2.3.3/gshhs_f.b"
+  sf1 <- getRgshhsMap(gshhs.f.b, xlim = c(-128, -120), ylim = c(36, 48)) %>%
+    fortify()
+  saveRDS(sf1, file = "data/maps/RgshhMap_sf1.rds", compress = "xz")
+}
+sf1 <- readRDS("data/maps/RgshhMap_sf1.rds")
 
 # plot up a map at full large scale  
 # make a column of jittered lats and longs.  We do this instead of geom_jitter because
