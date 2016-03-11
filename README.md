@@ -72,7 +72,7 @@ but it remains there to shows how the sample sheet was created.
   - `outputs/plate_x_y3.pdf`
   - `outputs/plate_x_y4.pdf`
 
-After those outputs came out, they were used to develop the scoring methodology and we scored those training chips accordingly. We have provided images of all the intensities of the points as in the `plate_x_y*` outputs above, but coloring things by genotype.  This was done both for all plates combined and for each plate separately in files with names of the forms:
+    After those outputs came out, they were used to develop the scoring methodology and we scored those training chips accordingly. We have provided images of all the intensities of the points as in the `plate_x_y*` outputs above, but coloring things by genotype.  This was done both for all plates combined and for each plate separately in files with names of the forms:
   - `outputs/plate_x_y_by_final_genotype_plate_1381905043_only1.pdf`
   - `outputs/plate_x_y_by_final_genotype_plate_1381905043_only2.pdf`
   -  . . . 
@@ -82,8 +82,6 @@ After those outputs came out, they were used to develop the scoring methodology 
   -  `outputs/plate_x_y_by_final_genotype_plates_combined1.pdf`
   -  `outputs/plate_x_y_by_final_genotype_plates_combined2.pdf`
   -  . . .
-
-
 
 2. `R-main/03-score-plate-five.R`: This file shows the sort of workflow that is adopted to score chips beyond the training chips (specifically looking at how we score chip #5).  It shows the workflow for plotting figures of the raw intensity data for the training chips and for chip 5 together on the same plots, then it reads in the scored version of chip 5.  This scored version of the plate is the output from the Fluidigm Software after you use the software to manually score the individuals at each locus.  The scored file is saved at `./data/more_chips/1382136064_scored.csv`.  The header on it looks like the following, in case that helps people to understand what format/type of output from the Fluidigm software it is:
 
