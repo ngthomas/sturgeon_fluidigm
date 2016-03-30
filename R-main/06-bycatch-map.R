@@ -86,7 +86,6 @@ if(PRIVATE_ACCESS == TRUE) {
     rename(DPS = DPS_gsi_sim)
   
   # here I am going to make a data frame of permuted lats and longs (within DPS)
-  set.seed(500)
   df2 <- DF %>% 
     group_by(DPS) %>%
     mutate(perm_idx = sample(1:n()),
