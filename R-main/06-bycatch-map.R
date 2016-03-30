@@ -17,72 +17,96 @@ gsi_dps <- readRDS("outputs/gsi-sim-DPS-assignments-of-bycatch.rds") %>%
 # get the sample sheet
 sam <- read.csv("data/meta/sample_sheet.csv", stringsAsFactors = FALSE) %>% tbl_df
 
-# get the meta data (not on repo)
-tmp <- readxl::read_excel("data/meta/private-green-sturgeon-reconciled.xlsx", sheet = 1, skip = 0) 
-region_meta <- tmp[-1, names(tmp) != ""] # messy excel file---have to rip of extra unnamed columns, and the first row has nada in it
 
-
-#### Some Reporting and Output Stuff First  ####
-# now, before we do anything else we are going to join to each of these assignents the reconciled meta
-# data file from the region, so carlos can send it back to them.
-Results4Reg <- gsi_dps %>%
-  left_join(dps_df) %>%
-  rename(DPS_structure = DPS,
-         SouthernDPS_prob_gsi_sim = SouthernDPS,
-         NorthernDPS_prob_gsi_sim = NorthernDPS) %>%
-  full_join(region_meta, .)
-
-# and before we send that back we will want to make a note of the duplicated
-# samples, because the duplicate tisssues don't get DPS assignments (because
-# their other half has it.)
-bycid_rev <- readRDS("data/meta/bycatch_IDS.rds") %>%
-  filter(!is.na(Duplicate_Tissue)) %>%
-  rename(Duplicated_Tissue_Of = NMFS_DNA_ID,
-         NMFS_DNA_ID = Duplicate_Tissue)
-
-Res4Reg_final <- left_join(Results4Reg, bycid_rev)
-
-write.csv(Res4Reg_final, file = "outputs/private-dps-assignments-with-meta-data-for-region.csv", row.names = FALSE)
-
-
-## In our first pass through these data we found a handful of matching samples
-## amongst the bycatch that we were not told by the Region were duplicately sampled
-## tissues.  I used the following lines to grab the meta-data for those individuals
-## and discover that those pairs were all sampled at the exact same time and were the
-## same size, so clearly they were just duplicate tissues from the same individual and
-## I updated that accordingly.
-if(FALSE) {
-  ## Now, while we are at it, we might as well get a summary of the 
-  ## matching samples that were not known as matching beforehand.
-  nks_matchers <- readRDS("outputs/nks_matching_pairs") 
+# only evaluate these if you have the private meta-data from the Region
+if(PRIVATE_ACCESS == TRUE) {
+  # get the meta data (not on repo)
+  tmp <- readxl::read_excel("data/meta/private-green-sturgeon-reconciled.xlsx", sheet = 1, skip = 0) 
+  region_meta <- tmp[-1, names(tmp) != ""] # messy excel file---have to rip of extra unnamed columns, and the first row has nada in it
   
-  ## make a data frame that has the matching pair followed by three NAs so that we 
-  ## can left_join other stuff onto them
-  nksv <- nks_matchers %>% 
-    select(name1, name2) %>%
-    as.matrix %>%
-    t() %>% 
-    rbind(NA, NA, NA) %>%
-    as.vector
   
-  nksdf <- data.frame(NMFS_DNA_ID = nksv, stringsAsFactors = FALSE) %>%
-    left_join(region_meta %>% filter(!is.na(NMFS_DNA_ID)))
+  #### Some Reporting and Output Stuff First  ####
+  # now, before we do anything else we are going to join to each of these assignents the reconciled meta
+  # data file from the region, so carlos can send it back to them.
+  Results4Reg <- gsi_dps %>%
+    left_join(dps_df) %>%
+    rename(DPS_structure = DPS,
+           SouthernDPS_prob_gsi_sim = SouthernDPS,
+           NorthernDPS_prob_gsi_sim = NorthernDPS) %>%
+    full_join(region_meta, .)
   
-  write.csv(nksdf, file = "outputs/previously-unannounced-matching-genotypes-for-region.csv", 
-            na = "", row.names = FALSE)
+  # and before we send that back we will want to make a note of the duplicated
+  # samples, because the duplicate tisssues don't get DPS assignments (because
+  # their other half has it.)
+  bycid_rev <- readRDS("data/meta/bycatch_IDS.rds") %>%
+    filter(!is.na(Duplicate_Tissue)) %>%
+    rename(Duplicated_Tissue_Of = NMFS_DNA_ID,
+           NMFS_DNA_ID = Duplicate_Tissue)
+  
+  Res4Reg_final <- left_join(Results4Reg, bycid_rev)
+  
+  write.csv(Res4Reg_final, file = "outputs/private-dps-assignments-with-meta-data-for-region.csv", row.names = FALSE)
+  
+  
+  ## In our first pass through these data we found a handful of matching samples
+  ## amongst the bycatch that we were not told by the Region were duplicately sampled
+  ## tissues.  I used the following lines to grab the meta-data for those individuals
+  ## and discover that those pairs were all sampled at the exact same time and were the
+  ## same size, so clearly they were just duplicate tissues from the same individual and
+  ## I updated that accordingly.
+  if(FALSE) {
+    ## Now, while we are at it, we might as well get a summary of the 
+    ## matching samples that were not known as matching beforehand.
+    nks_matchers <- readRDS("outputs/nks_matching_pairs") 
+    
+    ## make a data frame that has the matching pair followed by three NAs so that we 
+    ## can left_join other stuff onto them
+    nksv <- nks_matchers %>% 
+      select(name1, name2) %>%
+      as.matrix %>%
+      t() %>% 
+      rbind(NA, NA, NA) %>%
+      as.vector
+    
+    nksdf <- data.frame(NMFS_DNA_ID = nksv, stringsAsFactors = FALSE) %>%
+      left_join(region_meta %>% filter(!is.na(NMFS_DNA_ID)))
+    
+    write.csv(nksdf, file = "outputs/previously-unannounced-matching-genotypes-for-region.csv", 
+              na = "", row.names = FALSE)
+  }
+  
+  
+  #### Now, start making maps ####
+  
+  # now put gsi_dps together with the region's lat-long data
+  DF <- region_meta %>%
+    left_join(gsi_dps, .) %>%
+    filter(!is.na(RETRIEVE_LAT), !is.na(RETRIEVE_LONG))  %>%
+    select(NMFS_DNA_ID:DPS_gsi_sim, DISSECTION_BARCODE_NMFS, RETRIEVE_LAT, RETRIEVE_LONG) %>%
+    rename(DPS = DPS_gsi_sim)
+  
+  # here I am going to make a data frame of permuted lats and longs (within DPS)
+  set.seed(500)
+  df2 <- DF %>% 
+    group_by(DPS) %>%
+    mutate(perm_idx = sample(1:n()),
+           permuted_lat = RETRIEVE_LAT[perm_idx],
+           permuted_long = RETRIEVE_LONG[perm_idx])
+  
+  # and I will write that out
+  df2 %>%
+    ungroup() %>%
+    select(NMFS_DNA_ID, permuted_lat, permuted_long) %>%
+    saveRDS(file = "data/meta/permuted_lat_longs.rds")
+} else {  # If you don't have PRIVATE_ACCESS get the permuted lat-longs from here
+  permy <- readRDS("data/meta/permuted_lat_longs.rds")
+  DF <- left_join(gsi_dps, sam) %>%
+    left_join(permy) %>%
+    rename(RETRIEVE_LAT = permuted_lat,
+           RETRIEVE_LONG = permuted_long,
+           DPS = DPS_gsi_sim) %>%
+    filter(!is.na(RETRIEVE_LAT) & !is.na(RETRIEVE_LONG))
 }
-
-
-#### Now, start making maps ####
-
-# now put gsi_dps together with the region's lat-long data
-DF <- region_meta %>%
-  left_join(gsi_dps, .) %>%
-  filter(!is.na(RETRIEVE_LAT), !is.na(RETRIEVE_LONG))  %>%
-  select(NMFS_DNA_ID:DPS_gsi_sim, DISSECTION_BARCODE_NMFS, RETRIEVE_LAT, RETRIEVE_LONG) %>%
-  rename(DPS = DPS_gsi_sim)
-
-
 # now we just have to map those
 # look at our limits:
 range(DF$RETRIEVE_LAT)
