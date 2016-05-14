@@ -151,11 +151,30 @@ source("R-main/06-bycatch-map.R")
     \mbox{}\\
     {\small \myEmailFootnote Correspondence: \myEmailAddress}
     
-%   \begin{abstract}
-%   	\input{abstract.Rnw}     %% Put abstract text in here.  If we want to include R code in it we will have to
-                             %% use Sexpr{knit_child("doc.Rnw")} instead of \input{abstract.Rnw}.  But using \input gives us good
-                             %% syncing
-%    \end{abstract}
+   \begin{abstract}
+    Polyploid organisms pose substantial obstacles to genetic analysis, as molecular 
+assay data are usually difficult to evaluate in a Mendelian framework. Green sturgeon 
+({\em Acipenser medirostris}\/) is a tetraploid species and is facing significant conservation 
+challenges, including bycatch in ocean fisheries. We present here novel molecular 
+genetic assays and analytical methodology for green sturgeon that allow 
+discrimination of fish from the two visually indistinguishable distinct population 
+segments (DPSs), and also provide individual-specific genetic tags. We show how 
+the relative fluorescence intensity data from a standard quantitative PCR assay, 
+designed for a biallelic single nucleotide polymorphism, 
+can be grouped into ``genotype categories'' using 
+standard analytical software and post-processing manipulation. We then show how 
+these genotype category data can be used to discriminate green sturgeon from the 
+southern DPS, which is protected under the US Endangered Species Act, and the 
+northern DPS, which is not. We also show how these data can be used to reliably 
+identify individual green sturgeon, and can therefore be used in capture/recapture 
+analyses. Both types of identification are extremely accurate even when fewer than 
+half of the assays are successfully called. We then apply these new techniques to 
+show that proportions of the two green sturgeon DPSs are extremely different in the 
+two major fishery areas where they are encountered as bycatch. While these assays 
+and methods do not provide data that can be used in pedigree-based analyses, they 
+are an important advance in the application of genetic analysis to conservation and 
+management of polyploid organisms.	
+   \end{abstract}
    \end{strip}
 
 {\small
