@@ -83,7 +83,8 @@ MultiChipRelativeIntensityPlot <- function (DF,
                                             alreadyOrganized = FALSE,
                                             label_with_num_clusts = FALSE,
                                             lineSegAlpha = 1.0,
-                                            returnPlot = FALSE) {
+                                            returnPlot = FALSE,
+                                            LegendForCalledGenotypes = FALSE) {
   
   if (!alreadyOrganized) {
     DF <- ReOrganizeFile(DF) }
@@ -192,6 +193,29 @@ MultiChipRelativeIntensityPlot <- function (DF,
     g<- g + facet_wrap(~assay.name, ncol = num.columns )+
       theme_bw() + 
       scale_color_manual(values=cbPalette)
+    
+    g <- g + 
+      xlab("Raw intensity of dye 1") +
+      ylab("Raw intensity of dye 2") +
+      theme(axis.title = element_text(size=17),
+            axis.text.x = element_text(size = 13),
+            axis.text.y = element_text(size = 13))
+    
+    
+    if(LegendForCalledGenotypes == FALSE) {
+      g <- g + 
+        guides(color = guide_legend(
+          title = "Chip\nor\nChip_Pair",
+          override.aes = list(
+            linetype = c(0, 5, 5, 5, 0, 5, 5, 0, 5, 0),
+            shape = c(16, NA, NA, NA, 16, NA, NA, 16, NA, 16))))
+    } else {
+      g <- g + 
+        guides(color = guide_legend(
+          title = "Genotype\nCategory"
+        )) 
+    }
+    
     
     ggsave(paste0(prefix,i,".pdf"),g, width = 34, height = 22)
   }

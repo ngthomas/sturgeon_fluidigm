@@ -180,7 +180,8 @@ bottomrow <- MultiChipRelativeIntensityPlot(slim_dat,
                                             color.by = "new.k",
                                             num.columns = 4,
                                             returnPlot = TRUE,
-                                            exclude.seg=TRUE)
+                                            exclude.seg=TRUE,
+                                            LegendForCalledGenotypes = TRUE)
 
 bottomrow <- bottomrow + 
   xlab("Raw intensity of dye 1") +
@@ -203,7 +204,8 @@ MultiChipRelativeIntensityPlot(data.K,
                                prefix = "outputs/plate_x_y_by_final_genotype_plates_combined",
                                alreadyOrganized = TRUE,
                                color.by = "new.k",
-                               exclude.seg=TRUE)
+                               exclude.seg=TRUE,
+                               LegendForCalledGenotypes = TRUE)
 
 
 
@@ -215,7 +217,8 @@ for(i in unique(data.K$plate.name)) {
                                  color.by = "new.k", 
                                  alreadyOrganized = TRUE, 
                                  exclude.seg=TRUE,
-                                 prefix = paste("outputs/plate_x_y_by_final_genotype_plate", i, "only", sep = "_")
+                                 prefix = paste("outputs/plate_x_y_by_final_genotype_plate", i, "only", sep = "_"),
+                                 LegendForCalledGenotypes = TRUE
   )
 }
 
