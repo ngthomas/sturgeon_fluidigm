@@ -289,8 +289,12 @@ apairs2 %>%
   group_by(name1, name2) %>%
   summarise(num_times = n()) %>%
   ungroup %>%
-  saveRDS("outputs/nks_matching_pairs")
+  saveRDS("outputs/nks_matching_pairs.rds")
 
+
+# change pairtype to a factor to get the right ordering
+apairs2 <- apairs2 %>%
+  mutate(pairtype = factor(pairtype, levels = c("NKS", "SIDT", "MGD")))
 
 greensmear <- apairs2 %>% 
   filter(pairtype == "NKS", LLR < 0)
@@ -302,10 +306,28 @@ the_num_pairs <- apairs2 %>%
   ungroup %>%
   mutate(pretty_nums = formatC(n, big.mark = ","))
 
+apairs_for_plot <- apairs2 %>% mutate(alpha = ifelse(pairtype == "NKS", 0.1, 1.0))
+
 set.seed(5)
+g <- ggplot(apairs_for_plot, aes(x = LLR, y = pairtype, colour = pairtype, alpha = alpha)) + 
+  geom_point(position = position_jitter(width = 0, height = 0.3)) + 
+  geom_text(data = the_num_pairs, mapping = aes(label = pretty_nums, y = as.numeric(pairtype)), 
+            x = -95, colour = "black", hjust = 1, size = 3.3, alpha = 1.0) +
+  theme_bw() +
+  xlab("Log likelihood ratio statistic") +
+  ylab("Pairtype") +
+  scale_color_manual(name = "Pairtype", breaks=c("MGD","SIDT","NKS"), values = c("#00BA38", "#F8766D", "#619CFF")) +
+  facet_wrap(~ DPS, ncol = 1) +
+  xlim(-100, 70) + 
+  guides(alpha = FALSE)
+  
+ggsave(g, filename = "outputs/obs-self-id-logls.pdf", width = 10, height = 3)
+
+system("pdfcrop outputs/obs-self-id-logls.pdf")
+
 g <- ggplot(greensmear, aes(x = LLR, y = pairtype, colour = pairtype)) + 
-  geom_point(position = position_jitter(width = 0, height = 0.3), alpha = 0.1) +
   geom_point(data = the_rest, position = position_jitter(width = 0, height = 0.3), alpha = 1.0) +
+  geom_point(data = greensmear, position = position_jitter(width = 0, height = 0.3), alpha = 0.1) +
   theme_bw() +
   xlab("Log likelihood ratio statistic") +
   ylab("Pairtype") +
@@ -315,9 +337,7 @@ g <- ggplot(greensmear, aes(x = LLR, y = pairtype, colour = pairtype)) +
   facet_wrap(~ DPS, ncol = 1) +
   xlim(-100, 70) 
 
-ggsave(g, filename = "outputs/obs-self-id-logls.pdf", width = 10, height = 3)
 
-system("pdfcrop outputs/obs-self-id-logls.pdf")
 
 # write out the_num_pairs for future reference
 saveRDS(the_num_pairs, file = "outputs/the_num_pairs.rds")
