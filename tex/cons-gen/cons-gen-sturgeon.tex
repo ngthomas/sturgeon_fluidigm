@@ -339,7 +339,19 @@ DNA protocol (ddRAD; \citealt{Petersonetal2012}), which uses restriction
 enzyme digestion and DNA fragment size selection to reduce the fraction of the
 genome that is analyzed, ensuring that a sufficiently small portion is
 sequenced to provide adequate numbers of DNA sequences (read depth) from the
-eight different individuals. DNA sequencing was on a MiSeq DNA sequencer 
+eight different individuals. 
+Following the Peterson et al. protocol, genomic DNA was digested with EcoR1 and Sph1
+restriction enzymes, cleaned with Ampure XP beads (Beckman Coulter) and quantified
+using a Qubit Fluorometer (ThermoFisher Scientific). Enzyme-specific adapters
+containing sample-specific barcodes were then ligated, and the individual libraries
+were pooled in equimolar concentration. Pooled libraries were size selected to a target
+length of 500 base pairs using a Pippen Prep (Sage Science). Size-selected
+libraries were again quantified and measured for length distribution using the
+Qubit and a Bioanalyzer (Agilent). We used streptavidin beads to remove adapters
+that had self-ligated and then performed 12 cycles of PCR using primers that
+added Illumina flowcell annealing sequences to the library. Following another cleanup
+with Ampure beads, the library was qPCR quantified with Kapa SYBR Fast master mix and
+then sequenced. DNA sequencing was on a MiSeq DNA sequencer 
 (Illumina Inc., San Diego, CA) and yielded 21.24 million sequence reads, 
 each of 300 bp in length. We used Stacks software v 1.12 \citep{catchen2011stacks} 
 under the following parameter settings---$m = 4$, $M = 2$, $n = 2$---to assemble 
