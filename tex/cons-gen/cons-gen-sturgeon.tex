@@ -509,10 +509,22 @@ at each locus, and an individual's genotype category is assumed drawn, independe
 at each locus, from these frequencies.  
 Such a model does not require any assumptions about
 constituent alleles or the mode of their inheritance.
+
+It is important to understand that this approach with {\em structure}
+is entirely different than coding the individual alleles in polyploids as dominant
+markers by including the presence/absence of each allele as a binary
+phenotype.  The dominant-marker approximation has been useful in microsatellite 
+surveys of polyploid seaweed and sturgeon \citep{andreakis2009high,schreier2013patterns}; however
+with SNP assay data, clustering genotypes under a haploid model makes fewer 
+assumptions about inheritance of the markers, and, as such, makes fewer approximations
+when populations are not admixed.
+
+
 We included all individuals from which we had successfully
 obtained calls at 60 or more assays in an analysis with {\em structure} at $K$ (the number
-of genetic groups or populations) equal to one, two, and three, running it
-multiple times at each $K$. We used no prior information about the origin
+of genetic groups or populations) equal to one, two, and three. For each value of
+$K$ we ran {\em structure} eighteen times with a burn-in of 5,000 sweeps and 20,000 
+sweeps of data collection.  We used no prior information about the origin
 of the reference samples. Our aim was to evaluate the genetic clustering of
 individuals from the ``reference'' sample collections and whether they
 consistently grouped into two clusters, coincident with the DPS categorization.
@@ -650,12 +662,15 @@ of posterior probabilities of cluster membership for 319 individuals with $\geq 
 codes are defined in Table~\ref{tab:samps}. Each individual is represented by a vertical bar and the amount of different colors in those
 bars represents the posterior probability of cluster membership. For example, with $K=2$ each bar is either completely orange (Northern 
 DPS cluster) or completely blue (Southern DPS cluster), indicating that individuals can be assigned to those clusters with effectively 
-no uncertainty. For $K=3$ and $K=4$ there is more noise, indicating that a model with more than two genetic groups of green sturgeon 
-is not supported by the genetic data.\label{fig:distruct}}
+no uncertainty. \label{fig:distruct}}
 \end{figure*}
 %%%%%
 The results show unambiguously that the model for population structure that is best supported by the 
-data is one with $K = 2$ genetic groups. By noting the groups to which the reference samples are assigned, it is clear 
+data is one with $K = 2$ genetic groups. At $K=2$ individuals were either allocated entirely to
+one population or another, and the same result was obtained during every {\em structure} run,
+regardless of the random seed used. For $K=3$ and $K=4$ there is more noise, 
+indicating that a model with more than two genetic groups of green sturgeon 
+is not supported by the genetic data. By noting the groups to which the reference samples are assigned, it is clear 
 that these two groups coincide perfectly with the Northern and Southern DPSs of green sturgeon. In addition, it is 
 clear that the fish sampled from the Eel River are genetically similar to those from the Klamath River in the Northern DPS.
 
@@ -681,7 +696,7 @@ assignments (Figure~\ref{fig:sacto-self-ass}).
 \includegraphics[width = \linewidth]{inputs/self-ass-plot-crop.pdf}
 \caption{ Relationship between number of loci score and the posterior probabilities of self-assignments 
 (using a leave-one-out procedure) of Sacramento River fish and eggs to
-the Southern DPS.  It is remarkable that the assignments are all correct apart from one fish with only four loci scored.  \label{fig:sacto-self-ass}}
+the Southern DPS.  \label{fig:sacto-self-ass}}
 \end{figure}
 %%%%%%%%%%%%%
 This revealed that a correct assignment to DPS can be made
@@ -693,9 +708,9 @@ degraded tissues or otherwise low-quality DNA.
 The green sturgeon bycatch consisted of fish that are from both the Northern and
 Southern DPSs, with a greater proportion from the Southern DPS. The bycatch was
 all from two fishery areas: Gulf of the Farallones, near San Francisco, CA, and around the Columbia River
-plume, from Tillamook, OR to Grays Harbor, WA. The fish sampled in the southern
-area were almost all from the Southern DPS, whereas those in the northern area
-were a mixture of Southern and Northern DPS fish in nearly equal proportions
+plume, from Tillamook, OR to Grays Harbor, WA. Of the $n = 104$ fish sampled in the southern
+area all but one were from the Southern DPS.  By contrast, of the $n = 86$ fish sampled in the northern area,
+39 were from the Southern DPS and 47 were from the Northern DPS
 (Figure~\ref{fig:bycatch-map}).
 \begin{figure*}
 \begin{center}
@@ -755,7 +770,9 @@ target variable regions of the polyploid green sturgeon genome and a novel analy
 that skirts the inability to determine Mendelian relationships between gene copies by grouping 
 them into ``genotype categories.'' These assays and this calling methodology provide informative 
 data for several applications, including standard genetic stock identification (GSI) and 
-individual (re)identification. We show that GSI with these data can accurately assign all 
+individual (re)identification. 
+
+We show that GSI with these data can accurately assign all 
 individual green sturgeon to either the Northern or the Southern Distinct Population Segment (DPS) 
 with extremely high confidence, even with a modest number of loci. When this GSI approach 
 was applied to green sturgeon encountered as bycatch in groundfish fisheries, to categorize 
@@ -817,7 +834,7 @@ method, rather than using the underlying modeling framework of {\sc FitTetra}.
 
 
 
-In summary, we described here a straight-forward and reliable method for identifying
+In summary, we described here a straightforward and reliable method for identifying
 green sturgeon from the two recognized DPSs. These SNP assays provide substantially 
 better resolution than microsatellites that have been used previously for green sturgeon \citep{Israeletal2009} 
 and are considerably less challenging to genotype and analyze. 
@@ -838,7 +855,7 @@ grouped into the Northern DPS with Klamath River green sturgeon.
 
 
 \begin{acknowledgements}
-We are grateful to Phaedra Doukakis, Melissa Neuman, and Susan Wang (NMFS West Coast Regional Office) for engaging us in this project with the goal of identifying green sturgeon bycatch, Toz Soto (Karuk Tribe) and Bill Poytress (US Fish and Wildlife Service) for providing samples of juvenile green sturgeon from the Klamath and Sacramento rivers, respectively, Vanessa Apkenas and Cassie Columbus (Southwest Fisheries Science Center) for assistance with laboratory analyses. Joshua Strange (Stillwater Sciences) and Stephen Kullman (Wiyot Tribe) provided samples from fish encountered in the Eel River, and observations regarding their reproductive status, and staff from the NMFS West Coast Fisheries Observer Program provided samples from fishery bycatch. Steven Lindley and Ethan Mora provided helpful comments on the manuscript.
+We are grateful to Phaedra Doukakis, Melissa Neuman, and Susan Wang (NMFS West Coast Regional Office) for engaging us in this project with the goal of identifying green sturgeon bycatch, Toz Soto (Karuk Tribe) and Bill Poytress (US Fish and Wildlife Service) for providing samples of juvenile green sturgeon from the Klamath and Sacramento rivers, respectively, Vanessa Apkenas and Cassie Columbus (Southwest Fisheries Science Center) for assistance with laboratory analyses. Joshua Strange (Stillwater Sciences) and Stephen Kullman (Wiyot Tribe) provided samples from fish encountered in the Eel River, and observations regarding their reproductive status, and staff from the NMFS West Coast Fisheries Observer Program provided samples from fishery bycatch. Steven Lindley, Ethan Mora, and two anonymous referees provided helpful comments on the manuscript.
 \end{acknowledgements}
 %%%%%%%%%%%%%%%% END MAIN BODY
 
