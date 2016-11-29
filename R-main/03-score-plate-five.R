@@ -60,6 +60,45 @@ Dat.K <- Dat.reorg %>%
 saveRDS(Dat.K, file = "outputs/genotype_from_five_chips.rds", compress = "xz")
 
 
+#### Intermediate Step:  Explore missing data amongst bycatch ####
+# one of the referees seemed to be concerned that bycatch individuals might
+# have variation that was not part of the original chip-scoring scheme and
+# thought that it was possible that some of the missing data amongst bycatch samples
+# (which i think is pretty small anyway) could be the result of unscored 
+# true variation.  I doubt it.  But I wanted to look here at the distribution of 
+# distances from the origin for the genotypes that are not called as a fraction of that
+# same distance for called genotypes, to see how many of the uncalled genotypes
+# just have low illuminance.  
+
+bycids_here <- read.csv("data/meta/sample_sheet.csv", stringsAsFactors = FALSE) %>%
+  tbl_df() %>%
+  filter(category == "non-reference") %>%
+  select(NMFS_DNA_ID) %>%
+  unlist() %>%
+  unname()
+  
+
+# get just the bycatch genos and add a z-score for the radius on it
+byc_genos <- Dat.K %>%
+  filter(full.name %in% bycids_here) %>%
+  filter(total.k > 0)  %>% # only loci that we try to call
+  mutate(Geno_called = new.k > 0,  # whether or not it is called
+         radius = sqrt(rel.dye1^2 + rel.dye2))  %>%
+  group_by(assay.name) %>%     # group by assay to compute a radius Z-score for each point
+  mutate(zmean = mean(radius[Geno_called == TRUE]),
+         zsd = sd(radius[Geno_called == TRUE]),
+         z_radius = (radius - zmean) / zsd)  # this line computes the z-score of the radius
+
+
+# now we can plot histograms of all these
+ggplot(byc_genos, aes(x = z_radius, fill = Geno_called)) +
+  geom_histogram(binwidth = 0.1, alpha = 0.5, position = "identity")
+  
+# this shows that some of the no-calls clearly are not just cases of low illuminance, which
+# is good to know.
+
+
+
 #### Count up and plot the number of loci typed per sample ####
 # we want a histogram of the number of samples typed at 0,...,74 SNPs
 # faceted by plate.  And we also want to color the bars by short sample prefix
