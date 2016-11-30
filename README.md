@@ -1,5 +1,14 @@
 # sturgeon_fluidigm
 
+Note to self:
+
+To latexdiff the working directory against the submitted version of the paper, I can do this:
+```
+2016-11-30 06:09 /cons-gen/--% (master) pwd
+/Users/eriq/Documents/git-others-repos/sturgeon_fluidigm/tex/cons-gen
+2016-11-30 06:10 /cons-gen/--% (master) git latexdiff for-latexdiffing-from-submitted  --  --bibtex   --main cons-gen-sturgeon.tex
+```
+
 
 ## Steps To Reproduce the Analysis
 
