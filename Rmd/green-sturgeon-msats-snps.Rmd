@@ -1,0 +1,167 @@
+---
+title: "Comparing SNPS to Microsatellites for Population Assignment of Green Sturgeon"
+author: "Eric C. Anderson"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_notebook:
+    toc: true
+bibliography: ../tex/sturgeon-fluidigm.bib
+---
+
+```{r setup, message=FALSE}
+library(dplyr)
+library(readr)
+library(stringr)
+```
+This short notebook investigates the accuracy of population assignment for green sturgeon
+from the Klamath vs from the Sacramento River using the 
+SNPs developed in the paper and using the microsatellites described in
+@Israeletal2009.
+
+This process makes use of `gsi_sim` which can be downloaded from
+[https://github.com/eriqande/gsi_sim](https://github.com/eriqande/gsi_sim).
+
+## Microsatellites
+
+First, we look at microsatellites.  We use the data from @Israeletal2009.  The collections in that paper were from
+the Klamath, Rogue, and Sacramento rivers.  We restrict our attention to fish from the Klamath and the Sacramento 
+because the SNP refernce samples do not include any samples from the Rogue.
+
+We run the microsatellite data through `gsi_sim`'s self-assignment option and process the results into something that
+R can read:
+```{sh run-gsi-sim}
+if [ ! -d play ]; then mkdir play; fi
+cd play
+~/Documents/git-repos/gsi_sim/gsi_sim-Darwin -b ../data/israel-10-msats-baseline-KLA-SAC.txt --self-assign > gsi_out.txt 
+awk '/SELF_ASSIGN_A_LA_GC_CSV:/' gsi_out.txt | sed 's/SELF_ASSIGN_A_LA_GC_CSV:\///g;' > self-ass-for-r.txt 
+```
+
+Then read that into a tidy data frame
+```{r read-msats, message=FALSE}
+msats <- read_delim(file = "../play/self-ass-for-r.txt", delim = ";", col_names = FALSE) %>%
+  select(X1, X2, X3, X10) %>%
+  setNames(c("ID", "assto", "prob", "num_loci")) %>%
+  mutate(from_pop = str_sub(ID, 1, 3)) %>%
+  select(from_pop, everything()) %>%
+  mutate(correct = from_pop == assto,
+         num_loci = as.numeric(num_loci))
+```
+
+Count up how many loci were successfully typed on individuals from the different populations
+```{r tally-loci}
+msats %>% 
+  group_by(from_pop, num_loci) %>%
+  tally()
+```
+
+Let us be conservative and discard the handful of individuals with 7 or fewer typed loci out of 10.
+So, we are requiring that there be no more than 20% missing loci at each individual.
+
+```{r toss-missers}
+msat2 <- msats %>%
+  filter(num_loci >= 8)
+```
+
+### Microsatellite misassignments
+We can tally the number of misassignments:
+```{r msat-miss-ass}
+msat2 %>% 
+  group_by(from_pop, correct) %>%
+  tally()
+```
+
+So, that is about 1 to 2% incorrect from each population.  Let's look specifically at those wrong individuals.
+```{r msat-wrongos}
+msat2 %>%
+  filter(correct == FALSE)
+```
+We see that some of them have low posterior probabilities (which is good---we would rather not incorrectly be super-confident when we are wrong!).  However, some of them are quite high, which suggests that either the microsatellite data are not consistenly reliable, or that perhaps these individuals are migrants or sample mixups.  The latter is certainly a possibility, so in the following we will allow for the possibility that those were sample mixups, by just pretending that they were correctly assigned.
+
+Thus we give the baseline the benefit of the doubt and imagine that all the fish were  assigned to what was truly their correct popuation.  Doing so we can get a sense of how powerful the baseline is by investigating the distribution of posterior probabilities.  We do that by just sorting things:
+```{r msat-sort, rows.print = 20}
+msat2 %>%
+  arrange(prob)
+```
+That is 19 individuals with self-assignment scores less than 99%.
+
+
+## SNPs
+
+Now we run through a similar process with the SNPs that we have developed.
+We can get the assignments by running gsi_sim on the file that was used in the analysis
+```{sh run-gsi-sim-snps}
+if [ ! -d play ]; then mkdir play; fi
+cd play
+~/Documents/git-repos/gsi_sim/gsi_sim-Darwin -b ../outputs/gs_baseline.txt --self-assign > snp_out.txt 
+awk '/SELF_ASSIGN_A_LA_GC_CSV:/' snp_out.txt | sed 's/SELF_ASSIGN_A_LA_GC_CSV:\///g;' > snp-ass-for-r.txt 
+```
+and then read those in:
+```{r read-snps, message=FALSE}
+snps <- read_delim(file = "../play/snp-ass-for-r.txt", delim = ";", col_names = FALSE) %>%
+  select(X1, X2, X3, X10) %>%
+  setNames(c("ID", "assto", "prob", "num_loci")) %>%
+  mutate(from_river = str_sub(ID, 1, 3),
+         from_pop = ifelse(from_river == "Sac", "SouthernDPS", "NorthernDPS")) %>%
+  select(from_pop, everything()) %>%
+  mutate(correct = from_pop == assto,
+         num_loci = as.numeric(num_loci))
+```
+
+We can tally up the number of fish that are incorrectly self-assigned.  There is only
+`r sum(!snps$correct)` of those.  And that fish had only 4 non-missing loci.
+
+
+And now let us filter those to no more than 20% missing data and tally up some numbers
+```{r toss-miss-snps}
+snps2 <- snps %>%
+  filter(num_loci/74 >= .80)
+```
+Here are the number of fish correctly and incorrectly self-assigned:
+```{r self-ass-snps-nums}
+snps2 %>%
+  group_by(from_river, correct) %>%
+  tally()
+```
+So, no mistakes there.
+
+Now let us investigate the distribution of posterior probs by sorting everyone:
+```{r sort-snps}
+snps2 %>%
+  arrange(prob)
+```
+
+And we see that pretty much that the smallest of those is 99.998.  So we have a lot of confidence in being right here.  
+
+### SNP-based GSI posterior probabilities in the bycatch
+The baseline is relatively small, especially for the Klamath, but we can look at the distribution of the posterior probabilities
+for the fish from the bycatch to confirm that we have high confidence in GSI assignments (This was already obvious from the 
+_structure_ runs in the paper, but we will present it here with `gsi_sim` using just the small baseline as well...)
+```{r bycatch-read}
+# these results are available from the analysis done in the paper
+byc <- readRDS("../outputs/gsi-sim-DPS-assignments-of-bycatch.rds") %>%
+  filter(NumLoc/74 >= 0.8)  %>%   # filter at num loci
+  mutate(prob = ifelse(DPS_gsi_sim == "north", NorthernDPS, SouthernDPS))
+```
+
+First, tally up how many fish there are that were assigned to the Northern or the Southern DPS:
+```{r tally-byc}
+byc %>%
+  group_by(DPS_gsi_sim) %>%
+  tally()
+```
+Now just visually look at the posterior probs with which those fish are assigned:
+```{r byc-probs}
+byc %>% 
+  arrange(prob) %>%
+  select(-SouthernDPS, -NorthernDPS)
+```
+And we see that the lowest posterior probability is 0.9943, which is very close to 1.0.  
+
+## Conclusion
+
+Thus, although the microsatellites described in @Israeletal2009 offer impressive accuracy for
+genetic stock identification, it should be clear from the preceding that the set of SNPs
+we describe allows resolution between the Sacramento and the Klamath (and the Northern and Southern DPS)
+with greater reliability than the microsatellites used in @Israeletal2009.
+
+## References
