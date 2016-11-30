@@ -538,7 +538,21 @@ equal, while in GSI that proportion is estimated, and 2) {\em structure}
 can perform unsupervised clustering, while for GSI, known samples from each
 DPS are used as ``baseline'' samples. We used the reference samples from the Sacramento and
 Klamath rivers as our baseline samples from the Southern and Northern DPSs,
-respectively. We assessed accuracy of self-assignment of the
+respectively. 
+
+Our reference samples did not include any known spawners from the 
+Rogue River---an additional
+population in the Northern DPS.  However, a previous microsatellite study
+\citep{Israeletal2009} showed that green
+sturgeon in the Klamath River and the Rogue 
+River are not greatly differentiated ($F_\mathrm{ST} \approx 0.01$) relative to the 
+differentiation between the Northern and Southern DPSs ($F_\mathrm{ST}\approx$~0.05--0.08).
+This suggests that the absence of Rogue River in our 
+baseline should not greatly reduce our ability to assign fish to the Northern DPS, even if they 
+originate from the Rogue River.  
+
+
+We assessed accuracy of self-assignment of the
 baseline samples using a leave-one-out procedure, and then we performed GSI on
 the remaining samples (fishery bycatch and Eel River samples), using the
 expectation-maximization algorithm \citep{Dempsteretal1977} to maximize the likelihood. All analyses
@@ -709,7 +723,7 @@ The green sturgeon bycatch consisted of fish that are from both the Northern and
 Southern DPSs, with a greater proportion from the Southern DPS. The bycatch was
 all from two fishery areas: Gulf of the Farallones, near San Francisco, CA, and around the Columbia River
 plume, from Tillamook, OR to Grays Harbor, WA. Of the $n = 104$ fish sampled in the southern
-area all but one were from the Southern DPS.  By contrast, of the $n = 86$ fish sampled in the northern area,
+area, all but one were from the Southern DPS.  By contrast, of the $n = 86$ fish sampled in the northern area,
 39 were from the Southern DPS and 47 were from the Northern DPS
 (Figure~\ref{fig:bycatch-map}).
 \begin{figure*}
@@ -832,11 +846,25 @@ substantial decision-making effort by the user, including empirical
 adjustment of parameters and some hand curation. Our approach does the same, but with a more visual
 method, rather than using the underlying modeling framework of {\sc FitTetra}.
 
-
+One potential drawback, resulting from our method's reliance on an initial set
+of genotypes to develop the chip scoring methodology, occurs when
+trying to type individuals that
+carry genotypes that were not previously observed.  If these genotypes fall
+outside of the range of previously seen variation, they might be recorded as missing
+genotypes rather than as new, extant, genotypes.  If our method were attempted 
+in a species with many previously undocumented and highly diverged populations, then it would
+be appropriate to consider recalibrating the scoring methodology as new samples come in.
+For identifying green sturgeon to DPS it does not appear that such a recalibration
+is currently necessary: even though some of the sturgeon
+taken in bycatch may have originated from populations that were not represented in our reference
+samples (\ie the Rogue River) or which had allele frequencies that
+had fluctuated temporally from those in our reference populations, there were no individuals that could not be identified to DPS without great certainty.
 
 In summary, we described here a straightforward and reliable method for identifying
-green sturgeon from the two recognized DPSs. These SNP assays provide substantially 
-better resolution than microsatellites that have been used previously for green sturgeon \citep{Israeletal2009} 
+green sturgeon from the two recognized DPSs. A panel of microsatellites
+has previously provided quite a good degree of resolution between
+the fish from the two DPSs \citep{Israeletal2009}. However, these SNP assays provide substantially 
+better resolution than the microsatellites (see \textcolor{red}{Supporting Information XX}) 
 and are considerably less challenging to genotype and analyze. 
 Additionally, they provide a means to unambiguously identify individuals that have been 
 sampled more than once, which will be useful for the study of green sturgeon. In addition, 
