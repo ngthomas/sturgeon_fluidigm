@@ -345,7 +345,7 @@ restriction enzymes, cleaned with Ampure XP beads (Beckman Coulter) and quantifi
 using a Qubit Fluorometer (ThermoFisher Scientific). Enzyme-specific adapters
 containing sample-specific barcodes were then ligated, and the individual libraries
 were pooled in equimolar concentration. Pooled libraries were size selected to a target
-length of 500 base pairs using a Pippen Prep (Sage Science). Size-selected
+length of 500 base pairs using a Pippin Prep (Sage Science). Size-selected
 libraries were again quantified and measured for length distribution using the
 Qubit and a Bioanalyzer (Agilent). We used streptavidin beads to remove adapters
 that had self-ligated and then performed 12 cycles of PCR using primers that
@@ -367,7 +367,7 @@ two DPSs, many of them were polymorphic in the large set of reference samples (s
 
 The 96 assays were then validated on 96.96 SNP Genotyping Arrays (Fluidigm) 
 which use nanofluidic technology to simultaneously genotype all 9,216 
-combinations of 96 assays and 96 individuals on a single array (hereafter called ‚Äúchip‚Äù). 
+combinations of 96 assays and 96 individuals on a single array (hereafter called ``chip''Äù). 
 These assays contain two gene probes that are specific to the two variants 
 uncovered in the next generation sequencing effort. These probes carry 
 fluorescent dyes that measure the relative abundance of the two variants 
@@ -389,10 +389,21 @@ intensity. To deal with the indistinct clustering, it suffices to put an
 individual into a particular {\em genotype category} without reference to the
 underlying alleles. In this scheme, individuals with different {\em genotypes} may be put in the
 same genotype {\em category} if the genotypes are difficult to resolve on
-the basis of their fluorescence intensities. To address the chip- to-chip
+the basis of their fluorescence intensities. To address the chip-to-chip
 variation, each chip includes samples from a number of individuals that have
 been previously analyzed, so that corresponding clusters between the chips can
-be identified and the corresponding fluorescence intensities used to calibrate calling across chips.
+be identified and the corresponding fluorescence intensities used to calibrate calling across chips (Figure~\ref{fig:flowchart}).
+\begin{figure*}
+\begin{center}
+\includegraphics[width=0.87\textwidth]{inputs/flow-chart-crop.pdf}
+\end{center}
+\caption{Graphic depiction of workflows.  SNP Discovery done only once.  Development
+of SNP calling methodology need be undertaken only once.  Then the steps for 
+scoring of more fish on subsequent chips occur once for each additional chip
+that is run.}
+\label{fig:flowchart}
+\end{figure*}
+
 
 We first used four chips to decide which loci were consistently callable 
 ({\em call-development chips}) and, at each locus, the number of genotype categories that
