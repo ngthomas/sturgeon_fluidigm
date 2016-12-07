@@ -1,6 +1,7 @@
 ---
-title: "Comparing SNPS to Microsatellites for Population Assignment of Green Sturgeon"
-author: "Eric C. Anderson"
+title: "Supplement 3 to article, \"Genetic and individual assignment of tetraploid
+green sturgeon with SNP assay data\" --- Comparing SNPS to Microsatellites for Population Assignment of Green Sturgeon"
+author: "Eric C. Anderson, Thomas C. Ng, Eric D. Crandall, and J. Carlos Garza"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   html_notebook:
@@ -19,7 +20,9 @@ SNPs developed in the paper and using the microsatellites described in
 @Israeletal2009.
 
 This process makes use of `gsi_sim` which can be downloaded from
-[https://github.com/eriqande/gsi_sim](https://github.com/eriqande/gsi_sim).
+[https://github.com/eriqande/gsi_sim](https://github.com/eriqande/gsi_sim).  If you want
+to run it, you will need to have run the scripts in the `R-main` directory of the 
+repository to create some of the output files used here.
 
 ## Microsatellites
 
