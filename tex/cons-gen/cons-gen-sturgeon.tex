@@ -112,9 +112,9 @@ grestore
 
 %\authorrunning{Short form of author list} % if too long for running head
 
-\newcommand{\swfscucsc}{Fisheries Ecology Division, Southwest Fisheries Science Center, National Marine Fisheries Service {\em and} University of California, Santa Cruz, 110 Shaffer Road, Santa Cruz, CA 95060, USA.}
-\newcommand{\crandall}{University of California {\em and} Southwest Fisheries Science Center, National Marine Fisheries Service, 110 Shaffer Road, Santa Cruz, CA 95060, USA}
-\newcommand{\thomas}{Department of Biomolecular Engineering, University of California {\em and} Southwest Fisheries Science Center, National Marine Fisheries Service, 110 Shaffer Road, Santa Cruz, CA 95060, USA}
+\newcommand{\swfscucsc}{Fisheries Ecology Division, Southwest Fisheries Science Center, National Marine Fisheries Service {\em and} University of California, Santa Cruz, 110 McAllister Way, Santa Cruz, CA 95060, USA.}
+\newcommand{\crandall}{University of California {\em and} Southwest Fisheries Science Center, National Marine Fisheries Service, 110 McAllister Way, Santa Cruz, CA 95060, USA}
+\newcommand{\thomas}{Department of Biomolecular Engineering, University of California {\em and} Southwest Fisheries Science Center, National Marine Fisheries Service, 110 McAllister Way, Santa Cruz, CA 95060, USA}
 \newcommand{\csumb}{Division of Science and Environmental Policy, California State University, Monterey Bay, 100 Campus Center, Seaside, CA 93955, USA} 
 
 \institute{E.C. Anderson \at
@@ -181,7 +181,7 @@ one such polyploid fish species, green sturgeon ({\em Acipenser medirostris}). G
 inhabiting the northeastern Pacific and its tributaries. Spawning activity is
 known to occur primarily in the Sacramento, Klamath and Rogue river basins
 \citep{adams2007population}, although adult green sturgeon enter other rivers and evidence of
-spawning activity has recently been observed in the the Columbia River (Ethan Mora, pers.\ comm.) and
+spawning activity has recently been observed in the Columbia River \citep{schreier2016further} and
 in the Eel River of California~(J.~Strange and S.~Kullman, pers.\ comm.)
 
 Previous status reviews \citep{adams2007population,nmfs2015sturgeon} have determined that
@@ -340,9 +340,9 @@ enzyme digestion and DNA fragment size selection to reduce the fraction of the
 genome that is analyzed, ensuring that a sufficiently small portion is
 sequenced to provide adequate numbers of DNA sequences (read depth) from the
 eight different individuals. 
-Following the Peterson et al. protocol, genomic DNA was digested with EcoR1 and Sph1
+Following the \citet{Petersonetal2012} protocol, genomic DNA was digested with EcoR1 and Sph1
 restriction enzymes, cleaned with Ampure XP beads (Beckman Coulter) and quantified
-using a Qubit Fluorometer (ThermoFisher Scientific). Enzyme-specific adapters
+using a Qubit Fluorometer (ThermoFisher Scientific). Enzyme-specific adap\-ters
 containing sample-specific barcodes were then ligated, and the individual libraries
 were pooled in equimolar concentration. Pooled libraries were size selected to a target
 length of 500 base pairs using a Pippin Prep (Sage Science). Size-selected
@@ -350,9 +350,8 @@ libraries were again quantified and measured for length distribution using the
 Qubit and a Bioanalyzer (Agilent). We used streptavidin beads to remove adapters
 that had self-ligated and then performed 12 cycles of PCR using primers that
 added Illumina flowcell annealing sequences to the library. Following another cleanup
-with Ampure beads, the library was qPCR quantified with Kapa SYBR Fast master mix and
-then sequenced. DNA sequencing was on a MiSeq DNA sequencer 
-(Illumina Inc., San Diego, CA) and yielded 21.24 million sequence reads, 
+with Ampure beads, the library was qPCR quantified with Kapa SYBR Fast qPCR master mix and
+then sequenced on an Illumina MiSeq instrument, yielding 21.24 million sequence reads, 
 each of 300 bp in length. We used Stacks software v 1.12 \citep{catchen2011stacks} 
 under the following parameter settings---$m = 4$, $M = 2$, $n = 2$---to assemble 
 the sequences into 84,747 putatively unique genetic loci. Within those loci, 
@@ -522,7 +521,7 @@ Such a model does not require any assumptions about
 constituent alleles or the mode of their inheritance.
 
 It is important to understand that this approach with {\em structure}
-is entirely different than coding the individual alleles in polyploids as dominant
+is quite different than coding the individual alleles in polyploids as dominant
 markers by including the presence/absence of each allele as a binary
 phenotype.  The dominant-marker approximation has been useful in microsatellite 
 surveys of polyploid seaweed and sturgeon \citep{andreakis2009high,schreier2013patterns}; however
@@ -534,7 +533,7 @@ when populations are not admixed.
 We included all individuals from which we had successfully
 obtained calls at 60 or more assays in an analysis with {\em structure} at $K$ (the number
 of genetic groups or populations) equal to one, two, and three. For each value of
-$K$ we ran {\em structure} eighteen times with a burn-in of 5,000 sweeps and 20,000 
+$K$, we ran {\em structure} 18 times with a burn-in of 5,000 sweeps and 20,000 
 sweeps of data collection.  We used no prior information about the origin
 of the reference samples. Our aim was to evaluate the genetic clustering of
 individuals from the ``reference'' sample collections and whether they
@@ -551,9 +550,9 @@ DPS are used as ``baseline'' samples. We used the reference samples from the Sac
 Klamath rivers as our baseline samples from the Southern and Northern DPSs,
 respectively. 
 
-Our reference samples did not include any known spawners from the 
-Rogue River---an additional
-population in the Northern DPS.  However, a previous microsatellite study
+Our reference samples did not include any fish from the 
+Rogue River, the only other river with consistent reproduction by green sturgeon.  
+However, a previous microsatellite study
 \citep{Israeletal2009} showed that green
 sturgeon in the Klamath River and the Rogue 
 River are not greatly differentiated ($F_\mathrm{ST} \approx 0.01$) relative to the 
@@ -691,11 +690,11 @@ no uncertainty. \label{fig:distruct}}
 \end{figure*}
 %%%%%
 The results show unambiguously that the model for population structure that is best supported by the 
-data is one with $K = 2$ genetic groups. At $K=2$ individuals were either allocated entirely to
+data is one with $K = 2$ genetic groups. At $K=2$, individuals were either allocated entirely to
 one population or another, and the same result was obtained during every {\em structure} run,
-regardless of the random seed used. For $K=3$ and $K=4$ there is more noise, 
+regardless of the random seed used. For $K=3$ and $K=4$, there was more variability, 
 indicating that a model with more than two genetic groups of green sturgeon 
-is not supported by the genetic data. By noting the groups to which the reference samples are assigned, it is clear 
+was not supported by the genetic data. By noting the groups to which the reference samples are assigned, it is clear 
 that these two groups coincide perfectly with the Northern and Southern DPSs of green sturgeon. In addition, it is 
 clear that the fish sampled from the Eel River are genetically similar to those from the Klamath River in the Northern DPS.
 
@@ -804,7 +803,9 @@ was applied to green sturgeon encountered as bycatch in groundfish fisheries, to
 them into DPS of origin, it showed that fish sampled in the southern fishery area, the 
 Gulf of the Farallones, were almost entirely from the Southern DPS, whereas those in the 
 northern area, surrounding the Columbia River plume, were a nearly equal mix of fish from 
-the two DPSs. Additionally, we show that green sturgeon recently encountered in the Eel River
+the two DPSs. 
+This finding suggests that green sturgeon migration in the the coastal ocean is primarily north of their river basin of origin, as the southern fishery area is to the south of all of the Northern DPS spawning rivers and is dominated by Southern DPS fish.
+Additionally, we show that green sturgeon recently encountered in the Eel River
 were unambiguously 
 from the Northern DPS. These fish were apparently reproducing (J. Strange \& S. Kullman, pers. comm.), 
 which, if accurate, may indicate a recolonization of the Eel River, as it is recognized as
@@ -856,15 +857,16 @@ It should be noted that the recommended procedure for using {\sc FitTetra} invol
 substantial decision-making effort by the user, including empirical 
 adjustment of parameters and some hand curation. Our approach does the same, but with a more visual
 method, rather than using the underlying modeling framework of {\sc FitTetra}.
+Because of the inherent variability in quantitative PCR-based assays, and the larger number of expected fluorescence clusters with polyploid data, we have implemented a graphical approach to account for chip-to-chip variability and ensure consistent calling of genotype categories. While not absolutely necessary, the use of such a consistency check should reduce calling errors due to stochastic variation in the relative fluorescence of the two assay dyes.
 
 One potential drawback, resulting from our method's reliance on an initial set
-of genotypes to develop the chip scoring methodology, occurs when
+of genotypes to develop the chip calling methodology, occurs when
 trying to type individuals that
 carry genotypes that were not previously observed.  If these genotypes fall
 outside of the range of previously seen variation, they might be recorded as missing
 genotypes rather than as new, extant, genotypes.  If our method were attempted 
 in a species with many previously undocumented and highly diverged populations, then it would
-be appropriate to consider recalibrating the scoring methodology as new samples come in.
+be appropriate to consider recalibrating the calling methodology as new samples were analyzed.
 For identifying green sturgeon to DPS it does not appear that such a recalibration
 is currently necessary: even though some of the sturgeon
 taken in bycatch may have originated from populations that were not represented in our reference
@@ -873,14 +875,16 @@ had fluctuated temporally from those in our reference populations, there were no
 
 In summary, we described here a straightforward and reliable method for identifying
 green sturgeon from the two recognized DPSs. A panel of microsatellites
-has previously provided quite a good degree of resolution between
-the fish from the two DPSs \citep{Israeletal2009}. However, these SNP assays provide substantially 
-better resolution than the microsatellites (see \textcolor{red}{Supporting Information XX}) 
+has previously been described that provides useful resolution of
+the fish from the two DPSs \citep{Israeletal2009}. However, these novel SNP assays provide substantially 
+better resolution than the microsatellites (see Supporting Information) 
 and are considerably less challenging to genotype and analyze. 
 Additionally, they provide a means to unambiguously identify individuals that have been 
 sampled more than once, which will be useful for the study of green sturgeon. In addition, 
 the data strongly support the delineation of fish from the Klamath and Sacramento River 
-basins into two separate DPSs. Further research analyzing samples from fish known to have 
+basins into two separate DPSs. 
+The finding of a predominance of southern DPS fish in the southern fishery area, as well as a substantial number of them in the Northern fishery area, indicates that green sturgeon bycatch in these fisheries is primarily impacting Southern DPS fish. 
+Further research analyzing samples from fish known to have 
 originated in the Rogue River, the only other basin with substantial green sturgeon 
 reproduction, will be required to determine whether these fish are appropriately 
 grouped into the Northern DPS with Klamath River green sturgeon. 
