@@ -116,3 +116,7 @@ but it remains there to shows how the sample sheet was created.
 1. `R-main/05-indiv-id-sims.R`: Does the simulations of the log-likelihood ratio for individual identification, and then it computes those log-likelihood ratios for all pairs of fish genotypes.
 
 1. `R-main/06-bycatch-map.R`: Creates the maps of the bycatch fish.  
+
+1. `R-main/07-sequence-table.R`: Compiles up the assay sequences into the supplemental table.
+
+1. `Rmd/green-sturgeon-msats-snps.nb.html` and R-notebook for generating Supplement 3.
