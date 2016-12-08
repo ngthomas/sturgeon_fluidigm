@@ -11,31 +11,7 @@
 % your journal as needed.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% First comes an example EPS file -- just ignore it and
-% proceed on the \documentclass line
-% your LaTeX will extract the file if required
-\begin{filecontents*}{example.eps}
-%!PS-Adobe-3.0 EPSF-3.0
-%%BoundingBox: 19 19 221 221
-%%CreationDate: Mon Sep 29 1997
-%%Creator: programmed by hand (JK)
-%%EndComments
-gsave
-newpath
-  20 20 moveto
-  20 220 lineto
-  220 220 lineto
-  220 20 lineto
-closepath
-2 setlinewidth
-gsave
-  .4 setgray fill
-grestore
-stroke
-grestore
-\end{filecontents*}
-%
+%%
 \RequirePackage{fix-cm}
 %
 %\documentclass{svjour3}                     % onecolumn (standard format)
@@ -245,54 +221,6 @@ individual level to be derived from standard SNP genotyping assay data.
 
 
 
-%%%%% HERE ARE THOUGHTS FOR AN INTRODUCTION FOR A JOURNAL PAPER  %%%%%%%%%%%
-% This is super free-form, stream of consciousnessy at the moment, as I get some ideas
-% down onto the page.
-% 
-% The study of highly migratory species in environments that are difficult to monitor present
-% a number of challenges.   Often, the migrations themselves cannot be observed.
-% Genetic data has been successful in inferring the ecology of a number of species
-% that are otherwise difficult to study (CITE).  It is now fairly routine to do this
-% in most species, especially diploid ones.  Genetic methodologies are well-established for microsats, SNPs, and to an increasing extent, lately, next generation sequencing data.
-% Concurrently, the last two decades have seen an explosion in the availability statistical
-% methods for analyzing genetic data.  
-% 
-% The vast majority of methods have been developed for diploid organisms.  When these methods
-% can be extended to polyploids their extension
-% typically requires that the number of copies of individual alleles can be resolved in a
-% polyploid genotype, or that the exact inheritance patterns are known, which is not always
-% the case.  The challenges of polyploids have been
-% well-appreciated in botanical fields for some time (CITE Fisher's polyploid inheritance
-% paper), and these difficulties have been gaining increasing attention in the field of
-% molecular ecology (CITE that recent review).  
-% 
-% Significant advances have been made in the development of models for polyploids and
-% particularly for tetraploids, for example, fitTetra, and the work from Brazil on
-% sugar cane.  However, sometimes that quality of scoring is not high enough to 
-% resolve all those allele copies. Furthermore, the assumptions underylying fitTetra
-% are probably not appropriate when samples are mixture of diverged tetraploid populations.
-% (ERIC VERIFY THIS)
-% Clearly, it would be best to be able to resolve
-% and count all the alleles, but in cases where that is not possible for a majority of the
-% loci that have been discovered, alternative modes of analysis are sought.  One such
-% alternative analysis method is to treat alleles in polyploids as dominant markers.  This
-% approach has been used recently in population assignment (Israel et al.) and CITE, and CITE,
-% and more recently Wang and Scribner have shown the utility of that approach for doing
-% relationship inference.  
-% 
-% Modeling everything as a dominant marker (presence/absence of the allele) is particularly
-% well-suited to microsatellite loci where length polymorphisms are easy to interpret.
-% However, using xxxxxx-type SNP assays (like fluidigm assays)  the individual alleles
-% may not be so easily resolved, because the scoring relies on individual genotypes clustering
-% in two space, and it might not always be easy to resolve the 5 expected genotype clusters.
-% For such data, trying to resolve the data into individual, expected genotype categories
-% might be unworkable for many loci, especially if typing members of fairly well-diverged
-% lineages.  Depending on the goal of genetic analysis, however, it may still not be
-% necessary to require thinking about the data only as  individual alleles giving rise to
-% a full complement of expected genotypes.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 \section{Methods}
 
 
@@ -318,7 +246,7 @@ types and sample sizes.
 \begin{center}
 \begin{tabular}{llllr}
 \hline \hline \\ 
-\input{inputs/sample_summary.tex}
+\input{sample_summary.tex}
 \hline \hline \\ 
 \end{tabular}
 \end{center}
@@ -394,7 +322,7 @@ been previously analyzed, so that corresponding clusters between the chips can
 be identified and the corresponding fluorescence intensities used to calibrate calling across chips (Figure~\ref{fig:flowchart}).
 \begin{figure*}
 \begin{center}
-\includegraphics[width=0.87\textwidth]{inputs/flow-chart-crop.pdf}
+\includegraphics[width=0.87\textwidth]{flow-chart-crop.pdf}
 \end{center}
 \caption{Graphic depiction of workflows.  SNP discovery is done only once.  Development
 of SNP calling methodology is undertaken only once.  The steps for 
@@ -416,7 +344,7 @@ could be resolved. Some individuals were genotyped on multiple chips to evaluate
 (a) Number of samples from each location
 \begin{center}
 \begin{tabular}{lrrr}
-\input{inputs/chip_location_counts.tex}
+\input{chip_location_counts.tex}
 \hline
 \end{tabular}
 \end{center}
@@ -424,7 +352,7 @@ could be resolved. Some individuals were genotyped on multiple chips to evaluate
 (b) Number of samples shared between chips
 \begin{center}
 \begin{tabular}{lrrrr}
-\input{inputs/cross_chip_shared_samples.tex}
+\input{cross_chip_shared_samples.tex}
 \hline
 \end{tabular}
 \end{center}
@@ -450,9 +378,9 @@ shown (Figure~\ref{fig:plate_xy}).
 Similar plots for all of the loci are in the Supplement~1.
 \begin{figure*}
 (a)\\
-\includegraphics[width = \textwidth]{inputs/four_loci_by_plate-crop.pdf} \\
+\includegraphics[width = \textwidth]{four_loci_by_plate-crop.pdf} \\
 (b)\\
-\includegraphics[width = \textwidth]{inputs/four_loci_by_geno-crop.pdf}
+\includegraphics[width = \textwidth]{four_loci_by_geno-crop.pdf}
 \caption{ Raw \snptype{} fluorescence intensities at four loci typed upon the four
 scoring-development chips. Each panel
 shows the results at four chips for one locus.  The numeral in the upper right gives the number
@@ -663,7 +591,7 @@ to genotype well ($<$60 called assays; Figure~\ref{fig:success-histos}).
 
 \begin{figure}
 \begin{center}
-\includegraphics[width = \linewidth]{inputs/successful-assay-histogram-crop.pdf}
+\includegraphics[width = \linewidth]{successful-assay-histogram-crop.pdf}
 \end{center}
 \caption{ Histogram showing the number of individuals
 successfully scored for $0,\ldots, 74$ assays, on each of the chips.  Color denotes type of sample; Group Short
@@ -678,9 +606,9 @@ The posterior probability that each
 individual originated from one of the $K$ clusters is given in Figure~\ref{fig:distruct}. 
 %%%%%%
 \begin{figure*}
-\includegraphics[width = 0.92\textwidth]{inputs/BB_ds_Clumped_TopLabel_k002r001.pdf}~\raisebox{0.96ex}{$K = 2$} \\
-\includegraphics[width = 0.92\textwidth]{inputs/BB_ds_Clumped_NoLabel_k003r001.pdf}~\raisebox{0.96ex}{$K = 3$} \\
-\includegraphics[width = 0.92\textwidth]{inputs/BB_ds_Clumped_NoLabel_k004r001.pdf}~\raisebox{0.96ex}{$K = 4$}
+\includegraphics[width = 0.92\textwidth]{BB_ds_Clumped_TopLabel_k002r001.pdf}~\raisebox{0.96ex}{$K = 2$} \\
+\includegraphics[width = 0.92\textwidth]{BB_ds_Clumped_NoLabel_k003r001.pdf}~\raisebox{0.96ex}{$K = 3$} \\
+\includegraphics[width = 0.92\textwidth]{BB_ds_Clumped_NoLabel_k004r001.pdf}~\raisebox{0.96ex}{$K = 4$}
 \caption{ Representative {\em distruct} \protect\citep{rosenberg2004distruct} plots of {\em structure} estimates 
 of posterior probabilities of cluster membership for 319 individuals with $\geq 60$ loci. Sampling location 
 codes are defined in Table~\ref{tab:samps}. Each individual is represented by a vertical bar and the amount of different colors in those
@@ -717,7 +645,7 @@ to investigate the effect of the number of called genotypes on the confidence in
 assignments (Figure~\ref{fig:sacto-self-ass}).
 %%%%%%%%%%%
 \begin{figure}
-\includegraphics[width = \linewidth]{inputs/self-ass-plot-crop.pdf}
+\includegraphics[width = \linewidth]{self-ass-plot-crop.pdf}
 \caption{ Relationship between number of loci score and the posterior probabilities of self-assignments 
 (using a leave-one-out procedure) of Sacramento River fish and eggs to
 the Southern DPS.  \label{fig:sacto-self-ass}}
@@ -738,7 +666,7 @@ area, all but one were from the Southern DPS.  By contrast, of the $n = 86$ fish
 (Figure~\ref{fig:bycatch-map}).
 \begin{figure*}
 \begin{center}
-\includegraphics[width = \textwidth]{inputs/bycatch_map-crop.pdf}
+\includegraphics[width = \textwidth]{bycatch_map-crop.pdf}
 \end{center}
 \caption{ Location and DPS-origin of fishery bycatch samples. Left panel is a coastwide
 view.  The two right panels show the Columbia Plume region (top) and the 
@@ -754,9 +682,9 @@ Blue = Southern DPS. }
 Both the simulated (Fig.~\ref{fig:self-id}{\em a}) and observed (Fig.~\ref{fig:self-id}{\em b}) data 
 \begin{figure*}
 {\bf (a)}\\
-\includegraphics[width = \textwidth]{inputs/lambda_densities-crop.pdf}\\
+\includegraphics[width = \textwidth]{lambda_densities-crop.pdf}\\
 {\bf (b)}\\
-\includegraphics[width = \textwidth]{inputs/obs-self-id-logls-crop.pdf}
+\includegraphics[width = \textwidth]{obs-self-id-logls-crop.pdf}
 \caption{ Simulated ({\em a}) and observed ({\em b}) distributions of the log likelihood ratio 
 statistic $\Lambda_{ij}$ for identifying samples from the same individual.  ({\em a}) The density curves on the 
 left of the panel show the distribution of $\Lambda_{ij}$ for unrelated pairs (\ie $K_{ij} = \mathrm{U}$) and the 
@@ -907,6 +835,6 @@ We are grateful to Phaedra Doukakis, Melissa Neuman, and Susan Wang (NMFS West C
 \bibliographystyle{spbasicetalfixed}      % basic style, author-year citations, with fix by ECA to put a friggin period after et al.
 %\bibliographystyle{spmpsci}      % mathematics and physical sciences
 %\bibliographystyle{spphys}       % APS-like style for physics
-\bibliography{inputs/sturgeon-fluidigm}   % name your BibTeX data base
+\bibliography{sturgeon-fluidigm}   % name your BibTeX data base
 
 \end{document}
