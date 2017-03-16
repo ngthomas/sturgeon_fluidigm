@@ -244,7 +244,7 @@ types and sample sizes.
 \begin{table*}
 \caption{Summary of genetic samples used in this study.}
 \begin{center}
-\begin{tabular}{llllr}
+\begin{tabular}{llllrr}
 \hline \hline \\ 
 \input{sample_summary.tex}
 \hline \hline \\ 
@@ -254,7 +254,10 @@ types and sample sizes.
 \end{table*}
 Tissue samples were of various types, including fin clips, either dried or 
 stored in ethanol, and whole eggs or whole
-juvenile specimens stored in ethanol.
+juvenile specimens stored in ethanol. Freshwater samples were  
+obtained primarily during the late spring and early summer, 
+while bycatch samples were obtained from
+all months of the year except September and December.
 
 
 \subsection{SNP Discovery and Assay Development}
@@ -294,7 +297,7 @@ two DPSs, many of them were polymorphic in the large set of reference samples (s
 
 The 96 assays were then validated on 96.96 SNP Genotyping Arrays (Fluidigm) 
 which use nanofluidic technology to simultaneously genotype all 9,216 
-combinations of 96 assays and 96 individuals on a single array (hereafter called ``chip''Äù). 
+combinations of 96 assays and 96 individuals on a single array (hereafter called ``chip''¬Ä¬ù). 
 These assays contain two gene probes that are specific to the two variants 
 uncovered in the next generation sequencing effort. These probes carry 
 fluorescent dyes that measure the relative abundance of the two variants 
@@ -671,7 +674,7 @@ area, all but one were from the Southern DPS.  By contrast, of the $n = 86$ fish
 \caption{ Location and DPS-origin of fishery bycatch samples. Left panel is a coastwide
 view.  The two right panels show the Columbia Plume region (top) and the 
 Gulf of the Farallones (bottom).  Each point represents one green sturgeon.  Red = Northern DPS. 
-Blue = Southern DPS. }
+Blue = Southern DPS. Locations shown have been randomly jittered by up to 0.02$^\circ$ of latitude and longitude.}
 \label{fig:bycatch-map}
 \end{figure*}
 
@@ -769,6 +772,19 @@ SNP genotyping assays and then using a combination of software-generated and
 post-processing categorization, facilitated by calibration across analytical runs, 
 is applicable to any polyploid species and opens up new avenues for genetic 
 identification of the myriad species with multiple genome copies.
+
+One drawback of the inability to infer pedigree relationships with genotype
+category data is that we are unable to detect and account for siblings that may have
+been sampled together in some of our reference collections.
+As a consequence, 
+the genotype categories inferred from the reference data might not represent as much
+variation from each DPS as one would achieve with entirely unrelated individuals \citep{waples2017purging}.  However,
+the fact that fish from reference, non-reference, and bycatch samples are all confidently
+inferred to be entirely (\ie $q=0$ or $q=1$) from one cluster or another
+in the {\em structure} analysis with $K=2$ (Fig.~\ref{fig:distruct}) indicates that the 
+presence of siblings (if any) amongst our reference samples has
+had no appreciable impact
+on our ability to identify fish from the two DPSs. 
 
 Other methods for calling the genotypes 
 of tetraploid individuals using SNP assay intensity data have been recently
