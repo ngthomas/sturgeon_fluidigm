@@ -89,15 +89,37 @@ stab <- samsheet %>%
   tally() %>%
   setNames(c("Location", "Category", "Life Stage", "Group Short Name", "n"))
 
+# get the sampling years in there too
+sam_years <- samsheet %>%
+  left_join(., repo %>% select(NMFS_DNA_ID, COLLECTION_DATE)) %>%
+  tbl_df() %>%
+  mutate(coll_date = mdy(COLLECTION_DATE),
+         year = year(coll_date)) %>%
+  group_by(group_name) %>%
+  summarise(loyear = min(year, na.rm=T),
+            hiyear = max(year, na.rm=T)) %>%
+  mutate(year_str = ifelse(loyear == hiyear, paste(loyear), paste(loyear, hiyear, sep = "--"))) %>%
+  select(group_name, year_str) %>%
+  rename(`Group Short Name` = group_name, `Collection Years` = year_str)
+
+sam_years$`Collection Years`[sam_years$`Group Short Name` == "rjKla"] <- "2006"  # deal with this missing metadata.
+
+stab2 <- left_join(stab, sam_years)
 
 outf <- "outputs/sample_summary.tex"
-cat(names(stab), sep = " & ", file = outf)
+cat(names(stab2), sep = " & ", file = outf)
 cat("\\\\ \\hline\n", file = outf, append = TRUE)
-write.table(stab, sep = " & ", eol = "\\\\\n", col.names = F, 
+write.table(stab2, sep = " & ", eol = "\\\\\n", col.names = F, 
             row.names = F, quote = F, file = outf, append = T)
          
          
-         
+# just to appease a referee, look at the collection months of the bycatch and everyone else
+samsheet %>%
+  left_join(., repo %>% select(NMFS_DNA_ID, COLLECTION_DATE)) %>%
+  tbl_df() %>% 
+  mutate(date = mdy(COLLECTION_DATE), month = month(date)) %>% 
+  group_by(group_name, month) %>% 
+  tally() 
          
          
          

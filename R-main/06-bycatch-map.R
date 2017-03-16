@@ -217,3 +217,47 @@ dev.off()
 system("cd outputs; pdfcrop bycatch_map.pdf")
 
 
+# down here, look at Washington during different months
+if(PRIVATE_ACCESS == TRUE) {
+  tmp <- read.csv("data/meta/private-green-sturgeon-reconciled.csv", stringsAsFactors = FALSE) %>%
+    tbl_df()
+  region_meta <- tmp[-1, !str_detect(names(tmp), "^X") ]
+    
+    Results4Reg <- gsi_dps %>%
+    left_join(dps_df) %>%
+    rename(DPS_structure = DPS,
+           SouthernDPS_prob_gsi_sim = SouthernDPS,
+           NorthernDPS_prob_gsi_sim = NorthernDPS) %>%
+    full_join(region_meta, .)
+  
+  # and before we send that back we will want to make a note of the duplicated
+  # samples, because the duplicate tisssues don't get DPS assignments (because
+  # their other half has it.)
+  bycid_rev <- readRDS("data/meta/bycatch_IDS.rds") %>%
+    filter(!is.na(Duplicate_Tissue)) %>%
+    rename(Duplicated_Tissue_Of = NMFS_DNA_ID,
+           NMFS_DNA_ID = Duplicate_Tissue)
+  
+  Res4Reg_final <- left_join(Results4Reg, bycid_rev)
+  
+  sturgie <- Res4Reg_final %>%
+    select(DPS_gsi_sim, RETRIEVE_DATE, RETRIEVE_LAT, RETRIEVE_LONG) %>%
+    mutate(date = mdy_hms(RETRIEVE_DATE),
+           month = month(date)) %>%
+    filter(!is.na(DPS_gsi_sim), !is.na(month))
+  
+  # now plot these things out by month
+  gg <- ggplot() + 
+    geom_polygon(data = sf1, aes(x=long, y = lat, group = group), fill = "grey80") + 
+    coord_fixed(1.3) + 
+    geom_jitter(data = sturgie, mapping = aes(x = RETRIEVE_LONG, 
+                                         y = RETRIEVE_LAT, 
+                                         colour = DPS_gsi_sim), 
+               alpha = 0.6) +
+    scale_colour_manual(values = c(north = "red", south = "blue")) +
+    coord_fixed(ratio = 1.3, xlim = c(-122.5, -124.5), ylim = c(44.75, 48)) +
+    facet_wrap(~ month)
+  
+  ggsave(gg, filename = "outputs/wa_coast_ugly_jitter_by_month.pdf", width = 10, height = 15)
+  
+}

@@ -11,7 +11,8 @@ needed_packages <- c(
   "maps",
   "mapdata",
   "maptools",
-  "grid"
+  "grid",
+  "lubridate"
 )
 
 
