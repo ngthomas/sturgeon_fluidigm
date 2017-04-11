@@ -1,13 +1,27 @@
 # sturgeon_fluidigm
 
-Note to self:
 
-To latexdiff the working directory against the submitted version of the paper, I can do this:
-```
-2016-11-30 06:09 /cons-gen/--% (master) pwd
-/Users/eriq/Documents/git-others-repos/sturgeon_fluidigm/tex/cons-gen
-2016-11-30 06:10 /cons-gen/--% (master) git latexdiff for-latexdiffing-from-submitted  --  --bibtex   --main cons-gen-sturgeon.tex
-```
+## Get non-CC0 binaries, etc.
+
+If you want to reproduce all the analyses, you can go get this repository 
+on GitHub at [https://github.com/ngthomas/sturgeon_fluidigm](https://github.com/ngthomas/sturgeon_fluidigm).
+
+But, if that has disappeared, or for some other reason you wish to use the archived version 
+here from Dryad, you are going to have to install a few programs and scripts that could 
+not be archived on Dryad due to licensing issues.
+
+This was all done on a Mac.  So that is what I will describe things for:
+
+1. Get the binary for Mac (not the GUI front end) for [structure](http://web.stanford.edu/group/pritchardlab/structure.html)
+and copy it to: `./StructureArea/bin/structure` (i.e. an executable file called "structure" inside the 
+`bin` directory inside the `StructureArea` directory.)
+1. Download the binary for [distruct](https://web.stanford.edu/group/rosenberglab/distructDownload.html) for Mac and 
+copy it to `StructureArea/clump_and_distruct/bin/distruct`.
+1. Download the binary for [CLUMPP](https://web.stanford.edu/group/rosenberglab/clumppDownload.html) for Mac and 
+copy it to `/StructureArea/clump_and_distruct/bin/CLUMPP`.
+1. Get the GNU [parallel](https://www.gnu.org/software/parallel/) Perl script for Mac and copy it to 
+`./StructureArea/script/parallel`
+
 
 
 ## Steps To Reproduce the Analysis
