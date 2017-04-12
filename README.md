@@ -16,12 +16,13 @@ This was all done on a Mac.  So that is what I will describe things for:
 and copy it to: `./StructureArea/bin/structure` (i.e. an executable file called "structure" inside the 
 `bin` directory inside the `StructureArea` directory.)
 1. Download the binary for [distruct](https://web.stanford.edu/group/rosenberglab/distructDownload.html) for Mac and 
-copy it to `StructureArea/clump_and_distruct/bin/distruct`.
+copy it to `./StructureArea/clump_and_distruct/bin/distruct`.
 1. Download the binary for [CLUMPP](https://web.stanford.edu/group/rosenberglab/clumppDownload.html) for Mac and 
-copy it to `/StructureArea/clump_and_distruct/bin/CLUMPP`.
+copy it to `./StructureArea/clump_and_distruct/bin/CLUMPP`.
 1. Get the GNU [parallel](https://www.gnu.org/software/parallel/) Perl script for Mac and copy it to 
 `./StructureArea/script/parallel`
-
+1. To make PDFs of the distruct plots you will need to put the `epstopdf` utility from [ImageMagick](https://www.imagemagick.org/script/index.php)
+into `./StructureArea/clump_and_distruct/bin/epstopdf`.
 
 
 ## Steps To Reproduce the Analysis

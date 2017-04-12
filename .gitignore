@@ -5,7 +5,7 @@
 outputs
 stuff_from_crandall
 data/meta/private*
-
+supplements/plate*
 .DS_Store
 
 StructureArea
