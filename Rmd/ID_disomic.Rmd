@@ -1,0 +1,638 @@
+---
+title: "Identification of disomic segregate loci of autopolyploid sturgeons"
+author: "Thomas C Ng, Eric Anderson"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+  html_notebook:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(microhaplot)
+library(igraph)
+opts_chunk$set(#results = 'asis',      # This is essential (can also be set at the chunk-level)
+                #comment = NA, 
+                #prompt = FALSE, 
+                cache = TRUE)
+load(file="~/academic/sturgeon_fluidigm/Rmd/ID_disomic_data.rds")
+```
+
+# Purpose / Data background
+The goal of this project is to create a list of RAD loci that are resonably believed to be disomic inheritance for the purpose of drawing parental relationship between individuals.
+
+We will work with Eric Crandall's previous ddRAD run consisting of two population groups of a total of 24 green sturgeons samples. Unfortunately, we can only work with 8 individuals - 4 individuals from each pop group, since the rest of them fail to have a decent read coverage. This small sample size undoubtedly can lead our analysis with small sample bias.
+
+What do we know about green sturgeon or sturgeon family in general? How recent are the genome duplication events? What type of assignment studies, recent methods and approach and data type in the field of sturgeon? polyploid? Are they truely autopolyploid?
+
+## Protocol of Data Preparation
+
+1. Run a new version of STACKs with the flashed ddRAD
+2. Blat the STACKs reference loci with itself 
+3. Align the flashed reads with reference loci and generate microhaplotype
+4. Identify genotype class / allele composition for each sample's locus
+5. Report a list of potential disomic loci that 1) are uniquely aligned to nothing else but itself or 2)
+aligned to only one other stacks locus, in the case of oversplitting
+
+
+### Running Stacks
+
+STACKS is a software pipeline for inferring genomic loci from short read genomic sequence. It is intended to be used on diploid species, so when polyploidal data like the surgeon ddRAD is applied to STACKs, highly distinct allelic copies and overly diverged homeologs of a common loci will be inadvertendly gotten oversplit into multiple genomic 'stacks'. We will attempt to recover those loci back by merging those pairs of homeologous STACKs loci.
+
+Previously, Eric Crandall has already done the work in demultiplexing and merging these data sets. He also ran an older version of STACKs with a tigher mismatch criteria (... fill this in - report # of loci ended up with). I have rerun the flashed data again with an update version of STACKs and I acknowledge that even with a slightly relaxed mismatch criteria, a decent number of genomic loci will still be faulty separated into multiple stacks. 
+
+
+```{bash, eval=FALSE}
+# updating stacks to v.2.1
+./configure
+make
+sudo make install
+
+#path containing the seq : `/Users/thomasn/academic/sturgeon_fluidigm/ddRAD`
+
+denovo_map.pl -m 4 -M 4 -n 4 -o ./stacks/ --samples ./samples --popmap ./popmaps/popmap.txt
+
+```
+
+``` {bash, eval=FALSE}
+Thomass-MacBook-Pro:ddRAD thomasn$ denovo_map.pl -m 4 -M 4 -n 4 -o ./stacks/ --samples ./samples --popmap ./popmaps/popmap.txt
+Parsed population map: 8 files in 2 populations and 1 group.
+Found 8 sample file(s).
+
+Indentifying unique stacks...
+  /usr/local/bin/ustacks -t gzfastq -f ./samples/sample_GCATG.fq.gz -o ./stacks -i 1 -m 4 -M 4
+  /usr/local/bin/ustacks -t gzfastq -f ./samples/sample_AACCA.fq.gz -o ./stacks -i 2 -m 4 -M 4
+  /usr/local/bin/ustacks -t gzfastq -f ./samples/sample_CGATC.fq.gz -o ./stacks -i 3 -m 4 -M 4
+  /usr/local/bin/ustacks -t gzfastq -f ./samples/sample_TCGAT.fq.gz -o ./stacks -i 4 -m 4 -M 4
+  /usr/local/bin/ustacks -t gzfastq -f ./samples/sample_TGCAT.fq.gz -o ./stacks -i 5 -m 4 -M 4
+  /usr/local/bin/ustacks -t gzfastq -f ./samples/sample_CAACC.fq.gz -o ./stacks -i 6 -m 4 -M 4
+  /usr/local/bin/ustacks -t gzfastq -f ./samples/sample_GGTTG.fq.gz -o ./stacks -i 7 -m 4 -M 4
+  /usr/local/bin/ustacks -t gzfastq -f ./samples/sample_AAGGA.fq.gz -o ./stacks -i 8 -m 4 -M 4
+
+Depths of Coverage for Processed Samples:
+sample_GCATG: 100.30x
+sample_AACCA: 82.72x
+sample_CGATC: 57.69x
+sample_TCGAT: 98.81x
+sample_TGCAT: 85.61x
+sample_CAACC: 114.52x
+sample_GGTTG: 97.46x
+sample_AAGGA: 101.10x
+
+Generating catalog...
+  /usr/local/bin/cstacks -P ./stacks -n 4 -M ./popmaps/popmap.txt
+
+Matching samples to the catalog...
+  /usr/local/bin/sstacks -P ./stacks -M ./popmaps/popmap.txt
+
+Sorting reads by RAD locus...
+  /usr/local/bin/tsv2bam -P ./stacks  -M ./popmaps/popmap.txt
+
+Calling variants, genotypes and haplotypes...
+  /usr/local/bin/gstacks -P ./stacks -M ./popmaps/popmap.txt
+
+Calculating population-level summary statistics
+  /usr/local/bin/populations -P ./stacks -M ./popmaps/popmap.txt
+```
+
+Run through this again to get the vcf files: `/usr/local/bin/populations -P ./stacks -M ./popmaps/popmap.txt --vcf`
+
+* STACKs discovers ~ 24,214 loci
+
+### Blat stacks ref against itself
+
+To determine whether any homeologs are being split into separate stacks, we first blat STACK ref loci against to itself and aggregate all blat alignment pairs into clusters, where the vertices are members of the stacks loci and the connected edges represent the alignment pairing between two stacks 'loci'. We will only concern cluster of size of 1 and 2 which correspond to possibly true categorization of genomic loci and homeologs being split into two respectively. It is important to note that we will not be able to retrieve and fix all over splitted homeologs for any large size cluster, especially when the paralogs is highly indistinctinguisable from orthologs.
+
+```{bash, eval=FALSE}
+ ~/bin/blat/blat all_loci.fasta all_loci.fasta all_loci.psl
+``` 
+ 
+```{r, eval=FALSE, include=TRUE}
+psl.tbl <- read.table("/Users/thomasn/academic/sturgeon_fluidigm/ddRAD/stacks/all_loci.psl",skip = 5) %>%
+  tbl_df()
+
+psl.summary <- psl.tbl %>% 
+  group_by(V10,V14,V1) %>%
+  mutate(id1 = ifelse(V14>V10, V10, V14),
+         id2 = ifelse(V14>V10, V14, V10),
+         frac.sim = max(V1/V11, V1/V15),
+         align.len = max((V13-V12)/V11, (V17-V16)/V15)) %>%
+  ungroup() %>%
+  group_by(id1, id2) %>%
+  summarise(frac.sim = max(frac.sim),
+            align.len = max(align.len))
+
+#determine the number of cluster, size of the cliques (distribution  in similarity)
+#Ideally we want to have a small size clique, and high sequence similarity across the board
+ 
+aligng <- graph_from_edgelist(cbind(psl.summary$id1, psl.summary$id2))
+compSet <- components(aligng)
+
+cc_df <- data.frame(id=1:length(compSet$membership))
+csizeDF <- data.frame(csize = compSet$csize) %>% tbl_df() 
+
+binIntv <- c(0,1,2,5,10,100,1000,10000) 
+binLabl <- .bincode(csizeDF$csize, binIntv) 
+
+nCCsize<- table(binLabl)
+rownames(nCCsize) <- c("1","2","3-5","6-10","11-1000","1001-10000")
+```
+
+```{r}
+nCCsize
+# This counts the number of cc in each binned cluster size
+```
+
+```{r, eval=FALSE, cache=TRUE}
+snpdf <- read.table("/Users/thomasn/academic/sturgeon_fluidigm/ddRAD/stacks/populations.snps.vcf") %>%
+  tbl_df()
+
+nSNP.df <- snpdf %>% group_by(V1) %>%
+  summarise(nSNP = n()) %>%
+  rename("id"=V1)
+
+nSNP.ls <- rep(0, max(psl.summary$id1))
+nSNP.ls[nSNP.df$id]<- nSNP.df$nSNP
+
+# count the number of variant position (may be overestimated if > 0) for each cc
+nVar.perCluster <- sapply(groups(compSet), function(x) sum(nSNP.ls[x]))
+
+## need to evaluate the mean alignment similarity (remove self) between members in cc
+##
+mfracSim.df <- psl.summary %>% filter(id1!=id2) %>%
+  group_by(id1) %>%
+  summarise(mfrac = mean(frac.sim))
+
+mfracSim.ls <- rep(1, max(psl.summary$id1))
+mfracSim.ls[mfracSim.df$id1]<- mfracSim.df$mfrac
+
+mfracSim.perCluster <- sapply(groups(compSet), function(x) mean(mfracSim.ls[x]))
+
+nloci.perCluster <- sapply(groups(compSet), length)
+
+perCluster.df <- cbind(id = 1:(length(groups(compSet))),
+  nloci = nloci.perCluster,
+  mfracSim = mfracSim.perCluster,
+  nVar = nVar.perCluster) %>% tbl_df()
+```
+
+```{r}
+#ggplot()+
+#  geom_bin2d(data=perCluster.df, aes(x=nloci, y=mfracSim))+
+#  scale_x_log10()
+
+perCluster.df.clean <- perCluster.df %>% filter(nloci < 10)
+
+ggplot()+
+  #stat_bin2d(data=perCluster.df.clean, aes(x=nloci, y=mfracSim))+
+  #scale_x_log10()+
+  #scale_fill_gradient(trans="log10",low = "black", high="red")+
+  geom_density(data=perCluster.df.clean, aes(x=mfracSim))+
+  facet_grid(nloci~., scales = "free_y")+
+  xlab("frac of sequence aligned between two sequences in length")+
+  theme_bw()
+
+```
+ 
+```{r}
+perCluster.df.clean <- perCluster.df %>% filter(nloci < 10)
+
+ggplot()+
+  stat_bin2d(data=perCluster.df.clean %>% filter(nloci >0), aes(x=nloci, y=nVar))+
+  scale_fill_gradient(trans="log10",low = "black", high="red")+
+  theme_bw()+
+  scale_x_continuous(labels=rep("1",10), breaks=1:10)
+  
+perCluster.df.clean <- perCluster.df %>% filter(nloci < 10 & !(nloci == 1 & nVar==0))
+
+# histogram of number of variants per stacks locus
+ggplot() + 
+  geom_histogram(data=perCluster.df.clean  %>% filter(nloci==1), aes(x=nVar))+
+  theme_bw()
+```
+
+```{r}
+ggplot()+
+  stat_bin2d(data=perCluster.df.clean  %>% filter(nloci!=1), aes(y=mfracSim, x=nVar))+
+  scale_fill_gradient(trans="log10",low = "black", high="red")+
+  theme_bw()+
+  facet_wrap(.~nloci, scales = "free_y")
+
+``` 
+
+### Generate microhaplotype
+
+We align all the raw fastq reads against STACKS' reference loci with *bwa*. We assemble microhaplotype through R package *microhaplot*.
+
+```{bash, eval=F}
+#/Users/thomasn/academic/sturgeon_fluidigm/ddRAD
+awk '!/#/{print $1}' populations.snps.vcf |awk 'd[$1]++==0' > allvar.ls
+gunzip -c catalog.tags.tsv.gz |awk '!/#/{print $2"\t"$6}' > loci.tab
+cat allvar.ls loci.tab |awk 'd[$1]++==1{print ">"$1"\n"$2}' > filter0_loci.fasta
+ 
+gunzip -c catalog.tags.tsv.gz |awk '!/#/{print $2">"$6}' > all_loci.fasta
+
+#making a bwa ref index 
+/Users/thomasn/bin/bwa/bwa index filter0_loci.fasta
+
+# bwa align the fasta back to loci
+STPATH=/Users/thomasn/academic/sturgeon_fluidigm/ddRAD
+for i in samples/*; do 
+outF=${i##*/};
+outF=${outF%.fq.gz}.sam;
+/Users/thomasn/bin/bwa/bwa mem -aM $STPATH/stacks/filter0_loci.fasta $STPATH/$i > $STPATH/sam0/$outF; done
+```
+ 
+```{r, eval=FALSE}
+run.label <- "gsturgeon"
+sam.path <- "/Users/thomasn/academic/sturgeon_fluidigm/ddRAD/sam0"
+label.path <- "/Users/thomasn/academic/sturgeon_fluidigm/ddRAD/popmaps/haplotLabel.txt"
+vcf.path <- "/Users/thomasn/academic/sturgeon_fluidigm/ddRAD/stacks/populations.snps.vcf"
+app.path <- "~/Shiny/microhaplot"
+
+
+haplo.read.tbl <- microhaplot::prepHaplotFiles(
+  run.label = run.label,
+           sam.path=sam.path,
+           label.path=label.path,
+           vcf.path=vcf.path,
+           out.path="/Users/thomasn/academic/sturgeon_fluidigm/ddRAD/microhap",
+           app.path=app.path)
+
+
+
+microhap.tbl <- readRDS("/Users/thomasn/academic/sturgeon_fluidigm/ddRAD/microhap/gsturgeon.rds") %>% tbl_df()
+```
+
+
+We will not be using microhaplot shiny app to curate the loci since there are just way too many of them to look at. 
+ 
+
+### Determine allele composition 
+
+There are five possible genotype classes $G$ for a tetraploid organism - AAAA, AAAB, AABB, AABC, and ABCD - and three possible allelic proportions $p_g$ - 0.3, 0.5 or 1 - pending on the allele and genotype class $g$. Let $n_g$ be the total number of distinct alleles present for a genotype class $g$ such that when all four copies of the genomic loci share the same allele, $n_g$ is 1. 
+
+genotype class | $n_g$ | $p_g$
+|---|---|---|
+AAAA |1|1
+AAAB |2|1:0.3 
+AABB |2|1:1 
+AABC |3|1:0.5:0.5
+ABCD |4|1:1:1:1
+
+However, under high throughput sequencing of hundreds of individuals, the total number of observed unique microhaplotype $k_{i,j}$ at an a single locus $j$ of individual $i$ often exceed $n_g$ under the event of sample barcode cross-over. We propose a beta-binomal model to describe such bleed-through event that is carried at a rate of $\eta$, where $\eta_{i,j} \sim \text{beta}(\alpha + r^{n}_{i,j}, \beta+ r^{s}_{i,j} )$, and $r^{s}_{i,j}$ and $r^{n}_{i,j}$ are the number of reads considered to be signal and noise, respectively. As for the hyperparameters $\alpha$ and $\beta$, we estimate the value from the distribution of observed fraction of reads whose microhaplotype's allelic ratio is less than 0.13. This value of 0.13 is picked based on eye-balling the place of the right tailing end of the distribution of allelic ratio of third common or much less common microhaplotype of a locus for a single individual. 
+
+In large, the likelihood of $i$-th individual at locus $j$ to follow genotype model $g$ is proportional to the product of a binomial model of observing $r^{n}_{i,j}$ noisy reads out of a total of $r^{s}_{i,j} + r^{n}_{i,j}$ reads with an expected rate of $\eta$ and a multinomial model of observing $n_g$ microhaplotypes with respective descending read depths of $r^{s}_{i,j,1},...,r^{s}_{i,j,n_g}$ given the expected probabilities $p_g$ based on model $g$.
+
+$l_{i,j,g} \propto \text{bin}(r^{s}_{i,j}, r^{s}_{i,j} + r^{n}_{i,j};\eta) \times \text{multi}(r^{s}_{i,j,1},...,r^{s}_{i,j,n_g};p_g)$
+
+We will first look at loci (w/ more than 4 variant sites) that doesn't have any blat alignment hits other than itself. 
+
+```{r, eval=FALSE}
+micro.tbl <- readRDS("/Users/thomasn/academic/sturgeon_fluidigm/ddrad/sam_slim/gsturgeon.rds") %>% as_tibble()
+
+# we will be only looked at loci whose sequence alignment hit only to itself and must have at least 4 variant sites
+unique.loci.cluster <- perCluster.df %>% filter(nloci ==1, nVar >= 4) %>% select(id) %>% unlist()
+unique.sloci <- groups(compSet)[unique.loci.cluster] %>% unlist() %>% as.numeric
+unique.pass1 <- micro.tbl %>% filter(locus %in% unique.sloci) %>% arrange(locus, id, desc(depth))
+```
+
+```{r}
+# determine allele dosage composition 
+
+# estimate error rate in the form of beta (the mean and variance will be drawn from any certain cutoff)
+ggplot()+
+  geom_density(data=unique.pass1 %>% filter(rank>2,allele.balance<0.5), aes(x=allele.balance))+
+  facet_grid(rank~., scales = "free_y")
+
+```
+ 
+ 
+From the histogram, any allele balance less than 0.13 will be seemed as noise. Will be calculate the estimate mean and variance noise rate per individual locus.
+ 
+ 
+```{r}
+tot.read <- unique.pass1 %>% group_by(locus, id) %>% summarise(tot.depth = sum(depth))
+noise.read <- unique.pass1 %>% filter(allele.balance < 0.13) %>% group_by(locus, id) %>% summarise(noise.depth = sum(depth))
+ 
+frac.noise <- left_join(tot.read, noise.read, by=c("locus", "id")) %>%
+  group_by(locus, id) %>%
+  summarise(frac.noise = noise.depth/tot.depth)
+
+frac.noise$frac.noise[is.na(frac.noise$frac.noise)] <- 0
+
+ggplot()+
+  geom_point(data = frac.noise, aes(x=frac.noise, y=locus, color=locus)) +
+  facet_grid(id~.)
+
+```
+ 
+```{r}
+# calculate the mean of noise rate - to serve as the alpha and beta parameters for the beta-binomial model
+
+#https://stats.stackexchange.com/questions/12232/calculating-the-parameters-of-a-beta-distribution-using-the-mean-and-variance
+estBetaParams <- function(mu, var) {
+  alpha <- ((1 - mu) / var - 1 / mu) * mu ^ 2
+  beta <- alpha * (1 / mu - 1)
+  return(params = list(alpha = alpha, beta = beta))
+}
+
+betaParam <- estBetaParams(mean(frac.noise$frac.noise), var(frac.noise$frac.noise))
+```
+
+
+```{r}
+cal.prob.noise <- function(tot.depth, noise.depth) {
+noise.rate <- seq(0, 1,by = 0.0001)
+new.alpha <- betaParam$alpha + noise.depth
+new.beta <- (tot.depth-noise.depth) + betaParam$beta
+
+prob.beta <- dbeta(noise.rate, new.alpha ,new.beta)
+
+# we estimate the eta value based on maximum likelihood
+dbinom(noise.depth, tot.depth, max(prob.beta/sum(prob.beta)))
+}
+
+# calculate geno model 1 : AAAA
+noise.read.1 <- unique.pass1 %>% filter(rank>1) %>% group_by(locus, id) %>% summarise(noise.depth = sum(depth))
+ 
+frac.noise.model1 <- left_join(tot.read, noise.read.1, by=c("locus", "id")) %>%
+  mutate(noise.depth = ifelse(is.na(noise.depth), 0, noise.depth)) %>%
+  group_by(locus, id) %>%
+  mutate(prob.noise = cal.prob.noise(tot.depth, noise.depth),
+         log.prob.noise = ifelse(is.na(prob.noise),0,log(prob.noise)))
+
+#* 2.  AAAB 1, 0.3 noise & 
+#* 3.  AABB 1, 1 noise
+
+noise.read.2 <- unique.pass1 %>% filter(rank>2) %>% group_by(locus, id) %>% summarise(noise.depth = sum(depth))
+ 
+frac.noise.model2 <- left_join(tot.read, noise.read.2, by=c("locus", "id")) %>%
+  mutate(noise.depth = ifelse(is.na(noise.depth), 0, noise.depth)) %>%
+  group_by(locus, id) %>%
+  mutate(prob.noise = cal.prob.noise(tot.depth, noise.depth),
+         log.prob.noise = ifelse(is.na(prob.noise),0,log(prob.noise)))
+
+frac.signal.model2 <- unique.pass1 %>% filter(rank <3) %>%
+  group_by(locus, id) %>%
+  summarise(geno.1.depth = depth[1],
+            geno.2.depth = ifelse(n()>1, depth[2], 0),
+            log.prob.signal = dbinom(geno.1.depth,geno.1.depth+geno.2.depth,3/4,log = T))
+
+frac.noise.model3 <- frac.noise.model2
+
+frac.signal.model3 <- unique.pass1 %>% filter(rank <3) %>%
+  group_by(locus, id) %>%
+  summarise(geno.1.depth = depth[1],
+            geno.2.depth = ifelse(n()>1, depth[2], 0),
+            log.prob.signal = dbinom(geno.1.depth,geno.1.depth+geno.2.depth,1/2,log = T))
+
+#* 4.  AABC 1, 0.5, 0.5, noise
+noise.read.4 <- unique.pass1 %>% filter(rank>3) %>% group_by(locus, id) %>% summarise(noise.depth = sum(depth))
+ 
+frac.noise.model4 <- left_join(tot.read, noise.read.4, by=c("locus", "id")) %>%
+  mutate(noise.depth = ifelse(is.na(noise.depth), 0, noise.depth)) %>%
+  group_by(locus, id) %>%
+  mutate(prob.noise = cal.prob.noise(tot.depth, noise.depth),
+         log.prob.noise = ifelse(is.na(prob.noise),0,log(prob.noise)))
+
+frac.signal.model4 <- unique.pass1 %>% filter(rank <4) %>%
+  group_by(locus, id) %>%
+  summarise(geno.1.depth = depth[1],
+            geno.2.depth = ifelse(n()>1, depth[2], 0),
+            geno.3.depth = ifelse(n()>2, depth[3], 0),
+            log.prob.signal = dmultinom(c(geno.1.depth, geno.2.depth, geno.3.depth),
+                                        prob=c(2,1,1), log=T))
+
+
+#* 5.  ABCD 1,1,1,1,noise  expected
+noise.read.5 <- unique.pass1 %>% filter(rank>4) %>% group_by(locus, id) %>% summarise(noise.depth = sum(depth))
+ 
+frac.noise.model5 <- left_join(tot.read, noise.read.5, by=c("locus", "id")) %>%
+  mutate(noise.depth = ifelse(is.na(noise.depth), 0, noise.depth)) %>%
+  group_by(locus, id) %>%
+  mutate(prob.noise = cal.prob.noise(tot.depth, noise.depth),
+         log.prob.noise = ifelse(is.na(prob.noise),0,log(prob.noise)))
+
+frac.signal.model5 <- unique.pass1 %>% filter(rank <5) %>%
+  group_by(locus, id) %>%
+  summarise(geno.1.depth = depth[1],
+            geno.2.depth = ifelse(n()>1, depth[2], 0),
+            geno.3.depth = ifelse(n()>2, depth[3], 0),
+            geno.4.depth = ifelse(n()>3, depth[4], 0),
+            log.prob.signal = dmultinom(c(geno.1.depth, geno.2.depth, geno.3.depth, geno.4.depth),
+                                        prob=c(1,1,1,1), log=T))
+
+prob.model.1 <- frac.noise.model1 %>%
+  group_by(locus, id) %>%
+  summarise(prob.model.1 = log.prob.noise)
+
+prob.model.2 <- left_join(frac.noise.model2, frac.signal.model2, by=c("locus", "id") ) %>%
+  group_by(locus, id) %>%
+  summarise(prob.model.2 = log.prob.noise + log.prob.signal)
+prob.model.3 <- left_join(frac.noise.model3, frac.signal.model3, by=c("locus", "id") ) %>%
+  group_by(locus, id) %>%
+  summarise(prob.model.3 = log.prob.noise + log.prob.signal)
+prob.model.4 <- left_join(frac.noise.model4, frac.signal.model4, by=c("locus", "id") ) %>%
+  group_by(locus, id) %>%
+  summarise(prob.model.4 = log.prob.noise + log.prob.signal)
+prob.model.5 <- left_join(frac.noise.model5, frac.signal.model5, by=c("locus", "id") ) %>%
+  group_by(locus, id) %>%
+  summarise(prob.model.5 = log.prob.noise + log.prob.signal)
+
+prob.model.all <- left_join(prob.model.1, prob.model.2, by=c("locus","id")) %>%
+  left_join(., prob.model.3, by=c("locus","id")) %>%
+  left_join(., prob.model.4, by=c("locus","id")) %>%
+  left_join(., prob.model.5, by=c("locus","id")) 
+
+genotype.result <- prob.model.all %>% group_by(locus, id) %>%
+  summarise(model.select = which.max(c(prob.model.1, prob.model.2,prob.model.3, prob.model.4,prob.model.5)),
+            n.alleles.keep = ifelse(model.select == 1, 1,
+                                    ifelse(model.select == 4, 3,
+                                           ifelse(model.select == 5, 4, 2))))
+```
+
+
+```{r}
+unique.pass1.signal <- left_join(genotype.result, unique.pass1, by=c("locus", "id")) %>%
+  filter(n.alleles.keep >= rank) %>%
+  select(locus, id, model.select, group, haplo, depth, rank) %>%
+  group_by(locus, id, rank) %>%
+  mutate(allele.ct = ifelse(model.select ==1, 4,
+                            ifelse(model.select ==2,
+                                   ifelse(rank==1,3,1),
+                                   ifelse(model.select ==3,2,
+                                          ifelse(model.select==4,
+                                                 ifelse(rank==1,2,1),
+                                                 1)))))
+
+
+genotype.loci.summary <- genotype.result %>% 
+  group_by(locus) %>%
+  summarise(binary.rep = sum(10**unique(model.select-1)),
+            n.sam = n())
+
+genotype.loci.summary$binary.rep %>% stringr::str_pad(.,5,pad="0") %>% table
+```
+
+The above table summarises the various combination of genotype classes (in binary form) with counts found across loci. We notice that there are substantial cases for 00011, 00111, 01011, 01110, and 01111. 
+
+ideally: 00101 AABB & AAAA   
+Recommend to look at ->    
+00011: AAAA AAAB   
+00111: AAAA AAAB AABB  
+01011: AAAA AAAB AABC  
+01110: AAAB AABB AABC   
+01111: AAAA AAAB AABB AABC  
+
+```{r}
+# let's look at loci with all 8 indiv with the third allelic class (AABB) 101 100
+
+geno.class.bialleles <- genotype.loci.summary %>% filter(binary.rep == 101)
+
+left_join(geno.class.bialleles, unique.pass1.signal, by ="locus") %>%
+  group_by(locus) %>%
+  summarise(n.uniq.haplo = length(unique(haplo)),
+            n.indiv = length(unique(id)),
+            n.het = sum(model.select==3)/2)
+
+```
+
+```{r}
+# identify loci that are enrich for the dominant alleles (doesn't work with model 5)
+report.dom.loci <- function(geno.bin.class) {
+  geno.class <- genotype.loci.summary %>% filter(binary.rep == geno.bin.class) 
+
+  # seeing the first rank
+  filter.dom.class <- left_join(geno.class, unique.pass1.signal, by ="locus") %>%
+    group_by(locus) %>%
+    mutate(n.uniq.haplo= length(unique(haplo)),
+           has.model3 = sum(model.select == 3)) %>%
+  filter(model.select !=3, rank==1) %>%
+  group_by(locus, n.uniq.haplo, has.model3) %>%
+  summarise(n.uniq.dom.haplo = length(unique(haplo)),
+            n.indiv.notModel3 = length(unique(id)),
+            haplo = unique(haplo)[1]) %>%
+    ungroup() %>% filter(n.uniq.dom.haplo == 1)
+  
+  geno.class.model3 <- left_join(geno.class, unique.pass1.signal, by ="locus") %>%
+  filter(model.select ==3) %>%
+    group_by(locus) %>%
+    mutate(n.indiv = length(unique(id))) %>%
+    group_by(locus, haplo, n.indiv) %>%
+    summarise(n.indiv.model3 = n())
+  
+  # if there's a model3 found in locus, have to make all individuals with the model 3 (AABB) - that at least one out of the two of the alleles A and B will be the dominant alleles class found in non-model3 grp
+  
+  class.w.no.model3 <- filter.dom.class %>% filter(has.model3==0) %>%
+    mutate(n.indiv = 0, n.indiv.model3=0)
+  
+  class.join.dom <- left_join(filter.dom.class %>% filter(has.model3>0), geno.class.model3, by=c("locus", "haplo")) %>%
+    filter(n.indiv == n.indiv.model3)
+  
+  bind_rows(class.w.no.model3, class.join.dom) %>%
+    group_by(locus, haplo) %>%
+    mutate(n.indiv.notModel3 = ifelse(is.na(n.indiv.notModel3),0,n.indiv.notModel3),
+           n.indiv.model3 = ifelse(is.na(n.indiv.model3),0,n.indiv.model3),
+      n.indiv = n.indiv.notModel3 + n.indiv.model3,
+      geno.bin.class = geno.bin.class) %>%
+    select(geno.bin.class, locus, haplo, n.indiv, n.uniq.haplo,n.indiv.notModel3) %>%
+    arrange(desc(n.indiv), desc(n.uniq.haplo), desc(n.indiv.notModel3)) %>%
+    rename("dom.haplo"=haplo)
+}
+```
+
+```{r}
+# there are good amount of loci that fits in 111 - interesting to see whether certain allele tends to have more copies
+loci.candidate <- lapply(c(11, 101, 111, 1011, 1111, 1110), report.dom.loci) %>%
+  bind_rows()
+```
+ 
+ 
+```{r}
+loci.candidate.full <- left_join(loci.candidate %>% select(locus, dom.haplo, geno.bin.class, n.uniq.haplo), unique.pass1.signal, by="locus")
+          
+# calculate.allelic.freq
+allele.freq <- loci.candidate.full %>% 
+  group_by(locus) %>%
+  mutate(n.tot.alleles = sum(allele.ct)) %>%
+  group_by(locus, id, haplo) %>%
+  mutate(allele.ct.mod = ifelse(dom.haplo==haplo, allele.ct-2, allele.ct)) %>%
+  group_by(locus, haplo) %>%
+  summarise(
+    freq = sum(allele.ct)/n.tot.alleles[1],
+    freq.mod = sum(allele.ct.mod/(n.tot.alleles[1]/2)))
+
+#allele.freq %>% group_by(locus) %>% summarise(freqs=paste0(freq.mod,collapse=","), sum.freq = sum(freq.mod)) %>% View()
+
+ll.dependency.test <- left_join(allele.freq, loci.candidate.full, by=c("locus", "haplo")) %>%
+  group_by(locus, id, haplo) %>%
+  mutate(prob.model.indep = allele.ct*log(freq,10),
+         prob.model.codep = ifelse(haplo==dom.haplo,
+                                   (allele.ct-2)*log(freq.mod, 10),
+                                   allele.ct*log(freq.mod,10))) %>%
+  group_by(geno.bin.class, locus, n.uniq.haplo) %>%
+  summarise(ll.ratio = sum(prob.model.codep)- sum(prob.model.indep)) %>%
+  arrange(desc(ll.ratio))
+
+ggplot()+
+  geom_histogram(data=ll.dependency.test, aes(x=ll.ratio))+
+  facet_grid(n.uniq.haplo~.)+
+  scale_x_log10()
+# calculate log likelihood model assume codependence (fixed)
+# calculate log likelihood model assume independence 
+
+
+```
+
+```{r}
+ll.dependency.test %>% 
+  arrange(desc(n.uniq.haplo), desc(ll.ratio))
+```
+
+```{r}
+left_join(ll.dependency.test %>% 
+  arrange(desc(n.uniq.haplo), desc(ll.ratio)) %>% ungroup() %>% select(locus), loci.candidate.full,
+  by="locus") %>%
+  ungroup() %>%
+  mutate(geno.bin.class=stringr::str_pad(geno.bin.class,5,pad="0") )
+```
+
+if we go by the preceding list, I would recommend going for loci containing the most number of alleles, having the most number of individuals being sequenced and then thirdly by the large value of log likelihood ratio.
+
+
+
+
+
+
+
+
+
+ 
+I was first planning to check out loci that are strictly can 'blat'-eable aligned to one other loci but after thorough consideration, if we decide to go with these loci, it will be tricky to design a single primer that targets slightly diverged homeologs pairs. 
+ 
+
+### checking up fluidgm primer matches with current loci
+
+```{bash, eval=F}
+#the primer list is in previous supplem paper
+#/Users/thomasn/academic/sturgeon_fluidigm/ddRAD/primer
+#paste primer_name primer_seq |awk '{print ">"$1"\n"$2}' > primer_seq.fasta
+ ~/bin/blat/blat /Users/thomasn/academic/sturgeon_fluidigm/ddRAD/stacks/all_loci.fasta primer_seq.fasta primer2loci.psl
+```
+
+ 
+```{r, eval=FALSE}
+# isolate cases where the locus only aligned to one other locus
+pair.loci.cluster <- perCluster.df %>% filter(nloci ==2, nVar >= 4) %>% select(id) %>% unlist()
+pair.sloci <- groups(compSet)[pair.loci.cluster] 
+tibble(cluster.id = rep(names(pair.sloci), each=2),
+       )
+pair.pass1 <- micro.tbl %>% filter(locus %in% pair.sloci) %>% arrange(locus, id, desc(depth))
+```
+ 
+ 
