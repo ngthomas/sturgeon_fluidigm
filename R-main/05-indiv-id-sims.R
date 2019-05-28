@@ -278,8 +278,23 @@ apairs2 <- allpairs %>%
 
 
 # here, note that AM000120      AM000149  AM000131           AM000137   are bolluxed up.  
-apairs2 %>% filter(LLR > 0, name1 != name2) %>% as.data.frame()
+(SIDT <- apairs2 %>% filter(LLR > 0, name1 != name2) %>% as.data.frame())
 
+# while we are at it, save SIDT to a file
+saveRDS(SIDT, "outputs/same_individual_duplicate_tissue.rds")
+
+# and here is a list of sample_IDS that the region realized after the fact were duplicates:
+region_shout <- c("100.311.484", "100.311.485", "100.311.486", "100.320.508", "100.320.507", "100.320.511", "100.320.512", "100.320.524", "100.320.525", "100.321.395", "100.321.396", "100.329.183", "100.329.184")
+
+# so, we can get the repository information for all of those:
+full_repo <- readr::read_tsv("data/meta/AM001_AM006.tab")
+shout_repo <- full_repo %>% filter(SAMPLE_ID %in% region_shout)
+
+# here are those sample_IDs not in our repo:
+setdiff(region_shout, full_repo$SAMPLE_ID)
+
+# write that out
+write_csv(shout_repo, "outputs/repo_for_region_ided_dupes.csv")
 
 # now, we are going to want to save for later the list of all the 
 # samples not known to be duplicates
