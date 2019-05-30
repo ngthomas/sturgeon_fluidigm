@@ -19,7 +19,7 @@ opts_chunk$set(#results = 'asis',      # This is essential (can also be set at t
                 #comment = NA, 
                 #prompt = FALSE, 
                 cache = TRUE)
-load(file="~/academic/sturgeon_fluidigm/Rmd/ID_disomic_data.rds")
+load(file="ID_disomic_data.rda")
 ```
 
 # Purpose / Data background
