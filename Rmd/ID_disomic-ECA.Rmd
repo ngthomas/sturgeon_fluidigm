@@ -1,5 +1,5 @@
 ---
-title: "Identification of disomic segregate loci of autopolyploid sturgeons"
+title: "Identification of disomically segregating loci from green sturgeon"
 author: "Thomas C Ng, Eric Anderson"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
@@ -23,23 +23,58 @@ load(file="ID_disomic_data.rda")
 ```
 
 # Purpose / Data background
-The goal of this project is to create a list of RAD loci that are resonably believed to be disomic inheritance for the purpose of drawing parental relationship between individuals.
 
-We will work with Eric Crandall's previous ddRAD run consisting of two population groups of a total of 24 green sturgeons samples. Unfortunately, we can only work with 8 individuals - 4 individuals from each pop group, since the rest of them fail to have a decent read coverage. This small sample size undoubtedly can lead our analysis with small sample bias.
-
-What do we know about green sturgeon or sturgeon family in general? How recent are the genome duplication events? What type of assignment studies, recent methods and approach and data type in the field of sturgeon? polyploid? Are they truely autopolyploid?
-
-## Protocol of Data Preparation
-
-1. Run a new version of STACKs with the flashed ddRAD
-2. Blat the STACKs reference loci with itself 
-3. Align the flashed reads with reference loci and generate microhaplotype
-4. Identify genotype class / allele composition for each sample's locus
-5. Report a list of potential disomic loci that 1) are uniquely aligned to nothing else but itself or 2)
-aligned to only one other stacks locus, in the case of oversplitting
+Throughout much of their genome, it appears that green sturgeon undergo
+tetrasomic inheritance. However, some parts of the genome may be 
+inherited in a disomic fashion.  Our goal in this project is to identify
+candidate regions that may have disomic inheritance.  Genotypes in these
+regions could be useful for relationship inference and other genetic inference
+problems for which software for disomic/diploid inheritance is well developed.
 
 
-### Running Stacks
+The data that we have for identifying these possibly disomic regions
+consists of ddRAD sequence data collected in the lab, previously, by
+Eric Crandall. These data consist of a total of 24 green sturgeon individuals
+from the two different distinct population segments (DPSs, North and South) that are 
+recognized in green sturgeon. Unfortunately, although 24 green sturgeon were
+sequenced, only four individuals from each DPS yielded sufficient sequencing 
+read depth to be useful. Such a small sample size impedes our analysis somewhat;
+however, these are the only data that are available, at present.  The methods
+we develop here are general, and could be applied with little or no modification
+to a larger, more complete data set.
+
+
+## Overview of Analyses
+
+In order to conduct our analyses, we completely reprocessed the green sturgeon
+ddRAD data from the flashed fastq files.  Briely, the bioinformatic steps in the
+analysis were:
+
+1. Run a new version of STACKs on the flashed ddRAD sequences to create 
+stacks.
+2. Align (using blat) each reference sequence for each 
+stack from STACKSs to every other 
+reference sequence to identify undermerged stack pairs.
+3. Align the flashed reads to these reference sequences and
+generate microhaplotype data for each stack/locus.
+
+After that work was done, the microhaplotype data from stacks that only 
+aligned to themselves (e.g. that appear to be represent unique stacks) 
+were used in a novel analysis
+to find loci that are good candidates for having disomic inheritance.  The 
+steps of this analysis are:
+
+1. Identify the alleles and the `genotypic category` for each sample at each locus.
+(See below for a definition of `genotypic category`).
+1. Output a list of loci that show only certain genotypic categories (which are
+consistent with disomic inheritance) at all individuals in the data set.
+
+
+
+
+# Bionformatic details
+
+This section shows the commands used for the bioinformatics.  It is not light reading and can be skipped by most.
 
 STACKS is a software pipeline for inferring genomic loci from short read genomic sequence. It is intended to be used on diploid species, so when polyploidal data like the surgeon ddRAD is applied to STACKs, highly distinct allelic copies and overly diverged homeologs of a common loci will be inadvertendly gotten oversplit into multiple genomic 'stacks'. We will attempt to recover those loci back by merging those pairs of homeologous STACKs loci.
 
@@ -103,7 +138,7 @@ Run through this again to get the vcf files: `/usr/local/bin/populations -P ./st
 
 * STACKs discovers ~ 24,214 loci
 
-### Blat stacks ref against itself
+## Blat stacks ref against itself
 
 To determine whether any homeologs are being split into separate stacks, we first blat STACK ref loci against to itself and aggregate all blat alignment pairs into clusters, where the vertices are members of the stacks loci and the connected edges represent the alignment pairing between two stacks 'loci'. We will only concern cluster of size of 1 and 2 which correspond to possibly true categorization of genomic loci and homeologs being split into two respectively. It is important to note that we will not be able to retrieve and fix all over splitted homeologs for any large size cluster, especially when the paralogs is highly indistinctinguisable from orthologs.
 
@@ -224,7 +259,7 @@ ggplot()+
 
 ``` 
 
-### Generate microhaplotype
+## Generate microhaplotypes
 
 We align all the raw fastq reads against STACKS' reference loci with *bwa*. We assemble microhaplotype through R package *microhaplot*.
 
@@ -272,27 +307,87 @@ microhap.tbl <- readRDS("/Users/thomasn/academic/sturgeon_fluidigm/ddRAD/microha
 We will not be using microhaplot shiny app to curate the loci since there are just way too many of them to look at. 
  
 
-### Determine allele composition 
+# Analysis of microhaplotypes
 
-There are five possible genotype classes $G$ for a tetraploid organism - AAAA, AAAB, AABB, AABC, and ABCD - and three possible allelic proportions $p_g$ - 0.3, 0.5 or 1 - pending on the allele and genotype class $g$. Let $n_g$ be the total number of distinct alleles present for a genotype class $g$ such that when all four copies of the genomic loci share the same allele, $n_g$ is 1. 
+Here we document the novel analyses. Throughout we focus on microhaplotype loci which
+do not align to any others (i.e., they are likely unique, and not portions of over-split
+or under-merged stacks) at which
+4 or more SNPs variants are found.
 
-genotype class | $n_g$ | $p_g$
+
+## Genotype categories
+
+At a tetraploid locus, four copies of the locus will be present in the genotype.
+Amongst those four copies there can be between 1 and 4 (inclusive) distinct alleles.
+If only one allele is present, we call it allele A (note that it could be composed
+of multiple SNPs within a haplotype), and denote the genotype as AAAA.  If there are
+to distinct alleles present, then either one of the alleles is in three copies and
+the other is in one copy, or each allele is in two copies.  We name these two
+genotype categories AAAB (three copies of one allele and one of another) and AABB 
+(each allele in two copies).  If there are three distinct alleles, then one of them
+must be present in two copies and the other two must each be present in one copy, 
+and we name that genotype category AABC.  Finally, if there are four distinct
+alleles present at the locus, then each must be present in only a single copy,
+giving a genotype category of ABCD.
+
+In each of these genotype categories, we expect to find read depths of the
+different alleles in characteristic proportions.  We scale these expected 
+read depths so that the allele occurring in the greatest number of copies at the
+locus gets a value of 1, and then the remaining loci get values that are
+the "allelic balance ratios" familiar to users of `microhaplot`.
+
+
+The following table gives a summary of the five different genotype categories
+that are possible in a tetraploid. We let $n_g$ represent the total number of
+distinct alleles present for a genotype category $g$, and we denote the
+expected allelic read-depth proportions by $p_g$.  In the table we list the expected
+read-depth proportions, separated by commas, for each distinct allele, proceeding from
+the allele with the most copies to the fewest.
+
+genotype category | $n_g$ | $p_g$
 |---|---|---|
 AAAA |1|1
-AAAB |2|1:0.3 
-AABB |2|1:1 
-AABC |3|1:0.5:0.5
-ABCD |4|1:1:1:1
+AAAB |2|1, 0.33 
+AABB |2|1, 1 
+AABC |3|1, 0.5, 0.5
+ABCD |4|1, 1, 1, 1
 
-However, under high throughput sequencing of hundreds of individuals, the total number of observed unique microhaplotype $k_{i,j}$ at an a single locus $j$ of individual $i$ often exceed $n_g$ under the event of sample barcode cross-over. We propose a beta-binomal model to describe such bleed-through event that is carried at a rate of $\eta$, where $\eta_{i,j} \sim \text{beta}(\alpha + r^{n}_{i,j}, \beta+ r^{s}_{i,j} )$, and $r^{s}_{i,j}$ and $r^{n}_{i,j}$ are the number of reads considered to be signal and noise, respectively. As for the hyperparameters $\alpha$ and $\beta$, we estimate the value from the distribution of observed fraction of reads whose microhaplotype's allelic ratio is less than 0.13. This value of 0.13 is picked based on eye-balling the place of the right tailing end of the distribution of allelic ratio of third common or much less common microhaplotype of a locus for a single individual. 
 
-In large, the likelihood of $i$-th individual at locus $j$ to follow genotype model $g$ is proportional to the product of a binomial model of observing $r^{n}_{i,j}$ noisy reads out of a total of $r^{s}_{i,j} + r^{n}_{i,j}$ reads with an expected rate of $\eta$ and a multinomial model of observing $n_g$ microhaplotypes with respective descending read depths of $r^{s}_{i,j,1},...,r^{s}_{i,j,n_g}$ given the expected probabilities $p_g$ based on model $g$.
+While the table above gives the _expected_ read-depth proportions of the different
+alleles from different genotype categories, the read-depth proportions that are actually
+observed from high-throughput sequencing data
+may be quite different owing to variability in read depth across
+different alleles, and also to processes such as "barcode-bleedthrough" or "index-hopping" whereby sequencing reads from an indvidual are erroneously
+attributed to a different individual.  Such reads which do not represent
+allele carried by the sample we term "noisy" reads.  
 
-$l_{i,j,g} \propto \text{bin}(r^{s}_{i,j}, r^{s}_{i,j} + r^{n}_{i,j};\eta) \times \text{multi}(r^{s}_{i,j,1},...,r^{s}_{i,j,n_g};p_g)$
+In sequencing experiments with very many reads (high read depths),
+it might be quite easy to infer the genotype category
+of an individual at a locus by simply assessing the read-depth proportions in which the
+different alleles occur.  For example if four alleles at a locus all had read 
+depth between 180 and 210, with the other alleles present having between 1 and
+10 reads, then it would be quite likely that the genotype category was ABCD.
+Unfortunately, with our ddRAD data on green sturgeon, read depths are not typically
+so high.  We therefore implemented a statistical model to infer the genotype
+category of each individual at each locus.  
 
-We will first look at loci (w/ more than 4 variant sites) that doesn't have any blat alignment hits other than itself. 
+The first ingredient of this statistical model is the proportion $\eta$ of reads
+that are noisy reads. 
+That is to say, if we have 100 sequencing
+reads from a locus in an individual, we would expect that $100\eta$ of them would
+be noisy reads, while the remaining $100(1-\eta)$ would be _signal_ reads (i.e., 
+reads from alleles that actually are present in the individual).  We don't know
+the exact value of $\eta$, but we assume that it follows a beta distribution
+with parameters $\alpha$ and $\beta$ which we will can estimate from the data.
 
-```{r, eval=FALSE}
+To estimate $\alpha$ and $\beta$ from the data, we first inspect the
+distribution of read-depth proportions of all the alleles across all the loci in all
+the indviduals.  These distributions
+are broken down by the _rank_ of the allele within each individual and locus.  That is,
+if four alleles A, B, C, and D, are observed at a locus in an individual, in read depths
+of 30, 90, 49, and 12, respectively, then the B allele is of rank 1, the C allele is of 
+rank 2, A is rank 3 and D is rank 4.  
+```{r, eval=FALSE, echo=FALSE}
 micro.tbl <- readRDS("/Users/thomasn/academic/sturgeon_fluidigm/ddrad/sam_slim/gsturgeon.rds") %>% as_tibble()
 
 # we will be only looked at loci whose sequence alignment hit only to itself and must have at least 4 variant sites
@@ -300,24 +395,37 @@ unique.loci.cluster <- perCluster.df %>% filter(nloci ==1, nVar >= 4) %>% select
 unique.sloci <- groups(compSet)[unique.loci.cluster] %>% unlist() %>% as.numeric
 unique.pass1 <- micro.tbl %>% filter(locus %in% unique.sloci) %>% arrange(locus, id, desc(depth))
 ```
-
-```{r}
+```{r, fig.height=4, echo=FALSE}
 # determine allele dosage composition 
 
 # estimate error rate in the form of beta (the mean and variance will be drawn from any certain cutoff)
 ggplot()+
-  geom_density(data=unique.pass1 %>% filter(rank>2,allele.balance<0.5), aes(x=allele.balance))+
-  facet_grid(rank~., scales = "free_y")
+  geom_histogram(
+    data=unique.pass1 %>% filter(rank>0,allele.balance<=1.0), 
+    mapping = aes(x=allele.balance),
+    bins = 50
+  ) +
+  facet_grid(rank~., scales = "free_y") +
+  geom_vline(xintercept = 0.11, colour = "red")
 
 ```
- 
- 
-From the histogram, any allele balance less than 0.13 will be seemed as noise. Will be calculate the estimate mean and variance noise rate per individual locus.
- 
- 
-```{r}
+As can be seen in the plot, the read-depth proportion of every rank-1
+allele is 1, and, as expected, the read-depth proportion of rank-2 alleles is less than or 
+equal to 1. In a tetraploid, 
+we know that reads for any allele of rank 5 or more are almost certainly noisy reads.  There
+appears to be a clear break in read depth proportion between very low values (which likely
+represent noisy reads) and higher values which might be signal.  The red vertical line
+is placed at 0.11.  We set this value as the read-depth proportion below which 
+we deem reads to be noisy reads.
+
+Once we set the value of 0.11 to be our threshold for deeming a read a noisy
+read, we can inspect the empirical distribution of across each locus within 
+each individual of the fraction of reads that are noisy (by our definition of
+having a read-depth proportion < 0.11).  First we look across all loci within
+each of the eight different individuals
+```{r, echo=FALSE}
 tot.read <- unique.pass1 %>% group_by(locus, id) %>% summarise(tot.depth = sum(depth))
-noise.read <- unique.pass1 %>% filter(allele.balance < 0.13) %>% group_by(locus, id) %>% summarise(noise.depth = sum(depth))
+noise.read <- unique.pass1 %>% filter(allele.balance < 0.11) %>% group_by(locus, id) %>% summarise(noise.depth = sum(depth))
  
 frac.noise <- left_join(tot.read, noise.read, by=c("locus", "id")) %>%
   group_by(locus, id) %>%
@@ -325,13 +433,22 @@ frac.noise <- left_join(tot.read, noise.read, by=c("locus", "id")) %>%
 
 frac.noise$frac.noise[is.na(frac.noise$frac.noise)] <- 0
 
+frac.noise2 <- frac.noise %>%
+  mutate(ind = str_c("Ind ", id))
+
 ggplot()+
-  geom_point(data = frac.noise, aes(x=frac.noise, y=locus, color=locus)) +
-  facet_grid(id~.)
+  geom_histogram(data = frac.noise2, aes(x=frac.noise)) +
+  facet_grid(ind~.) +
+  xlab("Fraction of Noisy (read depth ppn. < 0.11) Reads at Locus") +
+  ylab("Number of Loci")
 
 ```
+ We see that the results are largely concordant across individuals.
  
-```{r}
+ Then we aggregate these values over all individuals, and we fit a beta distribution
+ to the resulting distribution by choosing $\alpha$ and $\beta$ (as closely as possible)
+ to match the mean and the variance of the observed distribution.  
+```{r, echo=FALSE}
 # calculate the mean of noise rate - to serve as the alpha and beta parameters for the beta-binomial model
 
 #https://stats.stackexchange.com/questions/12232/calculating-the-parameters-of-a-beta-distribution-using-the-mean-and-variance
@@ -343,6 +460,35 @@ estBetaParams <- function(mu, var) {
 
 betaParam <- estBetaParams(mean(frac.noise$frac.noise), var(frac.noise$frac.noise))
 ```
+The resulting values are $\alpha=$ `r betaParam[1]` and $\beta=$ `r betaParam[2]`.  
+
+The following plot shows a blue histogram of the observed distribution of $\eta$, with the
+orange line showing the fit of the beta distribution.
+```{r, echo = FALSE}
+# for some reason, stat_function is not functioning! So, do this:
+tmp <- tibble(
+  x = seq(0.002, 0.3, by = 0.001),
+  y = dbeta(seq(0.002, 0.3, by = 0.001), shape1 = betaParam[[1]], shape2 = betaParam[[2]])
+)
+
+ggplot() +
+  geom_histogram(data = frac.noise2, 
+                 mapping = aes(x = frac.noise, y = ..density..), 
+                 fill = NA, colour = "blue", bins = 30) +
+  geom_line(data = tmp, mapping = aes(x = x, y = y), colour = "orange") +
+  xlab("Fraction of Noisy Reads (eta)")
+```
+That is a pretty decent fit.
+
+
+However, under high throughput sequencing of hundreds of individuals, the total number of observed unique microhaplotype $k_{i,j}$ at an a single locus $j$ of individual $i$ often exceed $n_g$ under the event of sample barcode cross-over. We propose a beta-binomal model to describe such bleed-through event that is carried at a rate of $\eta$, where $\eta_{i,j} \sim \text{beta}(\alpha + r^{n}_{i,j}, \beta+ r^{s}_{i,j} )$, and $r^{s}_{i,j}$ and $r^{n}_{i,j}$ are the number of reads considered to be signal and noise, respectively. As for the hyperparameters $\alpha$ and $\beta$, we estimate the value from the distribution of observed fraction of reads whose microhaplotype's allelic ratio is less than 0.13. This value of 0.13 is picked based on eye-balling the place of the right tailing end of the distribution of allelic ratio of third common or much less common microhaplotype of a locus for a single individual. 
+
+In large, the likelihood of $i$-th individual at locus $j$ to follow genotype model $g$ is proportional to the product of a binomial model of observing $r^{n}_{i,j}$ noisy reads out of a total of $r^{s}_{i,j} + r^{n}_{i,j}$ reads with an expected rate of $\eta$ and a multinomial model of observing $n_g$ microhaplotypes with respective descending read depths of $r^{s}_{i,j,1},...,r^{s}_{i,j,n_g}$ given the expected probabilities $p_g$ based on model $g$.
+
+$l_{i,j,g} \propto \text{bin}(r^{s}_{i,j}, r^{s}_{i,j} + r^{n}_{i,j};\eta) \times \text{multi}(r^{s}_{i,j,1},...,r^{s}_{i,j,n_g};p_g)$
+
+
+
 
 
 ```{r}
